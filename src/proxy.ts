@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { AUTH_COOKIE, expectedToken } from "@/lib/auth";
 export async function proxy(request:NextRequest){
   const pathname=request.nextUrl.pathname;
+  if(pathname.startsWith("/_next/") || pathname === "/favicon.ico") return NextResponse.next();
   if(["/login","/api/health","/manifest.webmanifest","/sw.js","/offline.html"].includes(pathname) || pathname.startsWith("/icons/") || pathname.startsWith("/api/auth/"))return NextResponse.next();
   const cookie=request.cookies.get(AUTH_COOKIE)?.value;
   try {if(cookie && cookie===await expectedToken())return protect(request);}catch {return NextResponse.json({error:"Configure as credenciais do servidor."},{status:503});}
@@ -19,4 +20,3 @@ function protect(request:NextRequest){
   }
   return NextResponse.next();
 }
-export const config={matcher:["/((?!_next/static|_next/image|favicon.ico).*)"]};

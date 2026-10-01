@@ -33,5 +33,9 @@ if ! nginx -t; then
   exit 1
 fi
 systemctl reload nginx
-curl -fsS https://united.atisolution.com.br/kart/api/health
+for attempt in $(seq 1 15); do
+  if curl -fsS https://united.atisolution.com.br/kart/api/health; then break; fi
+  sleep 2
+done
+curl -fsS https://united.atisolution.com.br/kart/api/health >/dev/null
 printf '\nKartVicio publicado; backup Nginx: %s\n' "$backup"
