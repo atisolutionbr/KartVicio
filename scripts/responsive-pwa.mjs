@@ -10,7 +10,7 @@ try{
 const context=await browser.newContext();
 const page=await context.newPage();page.setDefaultTimeout(60000);
 const login=await context.request.post(path('/api/auth/login'),{data:{user:'admin',password:process.env.QA_PASSWORD??'kart123'}});assert.equal(login.status(),200);
-const manifest=await context.request.get(path('/manifest.webmanifest'));assert.equal(manifest.status(),200);const m=await manifest.json();assert.equal(m.display,'standalone');assert.equal(m.scope,prefix+'/');
+const manifest=await context.request.get(path('/manifest.webmanifest'));assert.equal(manifest.status(),200);const m=await manifest.json();assert.equal(m.display,'standalone');assert.equal(m.scope,prefix||'/');
 for(const icon of m.icons){const r=await context.request.get(host+icon.src);assert.equal(r.status(),200);assert.match(r.headers()['content-type'],/image\/png/);}
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 const routes=['/','/monitoring','/strategy','/box','/karts','/setup','/drivers','/teams','/stints','/history','/replay','/settings','/command','/ipad'];
@@ -22,7 +22,7 @@ await page.screenshot({path:`artifacts/responsive-${width}.png`,fullPage:false})
 await page.goto(path('/'));assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).zoom),'0.7');
 await page.getByRole('button',{name:'Escala 70%. Alternar escala',exact:true}).click();assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).zoom),'1');await page.reload();await page.getByRole('button',{name:'Escala 100%. Alternar escala',exact:true}).waitFor();
 await page.getByRole('button',{name:'Escala 100%. Alternar escala',exact:true}).click();
-await page.evaluate(async()=>{await navigator.serviceWorker.ready;});await page.reload();await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
+await page.evaluate(async()=>{await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>setTimeout(()=>reject(new Error("PWA não ativou no escopo atual")),20000))]);});await page.reload();await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
 await context.setOffline(true);await page.goto(path('/history'),{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'Sem conexão com o servidor'}).waitFor();await context.setOffline(false);
 assert.deepEqual(errors,[]);console.log(JSON.stringify({status:'passed',widths:[320,390,768,1440],routes:routes.length,manifest:true,icons:true,scale:true,offlineFallback:true}));
 }finally{await browser.close();}
