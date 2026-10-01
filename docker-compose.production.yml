@@ -1,0 +1,19 @@
+services:
+  kart:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_BASE_PATH: /kart
+    env_file: .env.production
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:15300:5300"
+    volumes:
+      - kart_data:/data/race-control
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5300/kart/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  kart_data:

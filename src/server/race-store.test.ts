@@ -1,0 +1,30 @@
+import { beforeAll, afterAll, describe, it, expect, vi } from "vitest";
+import { mkdtemp, readFile, rm, rmdir } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { emptySession } from "@/domain/race/session";
+let directory: string;
+let api: typeof import("./race-store");
+beforeAll(async()=>{directory=await mkdtemp(path.join(tmpdir(),"kart-store-test-"));vi.stubEnv("KART_DATA_DIR",directory);api=await import("./race-store");});
+afterAll(async()=>{vi.unstubAllEnvs();await rm(path.join(directory,"session.json"),{force:true});await rm(path.join(directory,"session.json.tmp"),{force:true});await rmdir(directory);});
+describe("persisted race and replay",()=>{
+ it("replays an exported pit with its original kart and preserves failed transaction state",async()=>{
+ const config={...emptySession().config,minDrivers:2,pitOpenAfterMs:0,pitCloseBeforeEndMs:0,stintMinimumMs:0,stopMinimumMs:1000,stopPenaltyThresholdMs:1000};
+ await api.operateRace({type:"configure",config});
+ for(const id of ["a","b"])await api.operateRace({type:"driver-save",driver:{id,name:id,weightKg:80,ballastKg:20,preferredRole:"balanced",stintCount:0,totalTimeMs:0}});
+ await api.operateRace({type:"team-save",team:{id:"t",number:"17",name:"Equipe",kart:"17",category:"",role:"leader",driverIds:["a","b"]}});
+ await api.operateRace({type:"driver-change",teamId:"t",driverId:"a"});
+ await api.operateRace({type:"normalized-laps",laps:[{teamId:"t",lapNumber:1,lapTimeMs:47000,raceElapsedMs:47000,source:"MANUAL",quality:"MANUAL"}]});
+ await api.operateRace({type:"pit-enter",teamId:"t"});
+ await api.operateRace({type:"normalized-laps",laps:[{teamId:"t",lapNumber:2,lapTimeMs:null,raceElapsedMs:50000,kind:"pit",source:"MANUAL",quality:"MANUAL"}]});
+ const before=await api.exportRace();
+ await expect(api.operateRace({type:"pit-exit",teamId:"t",driverId:"b",kart:"17",checks:{plate:true,sensor:true,weighed:true,ballast:true}})).rejects.toThrow("troca de kart");
+ expect((await api.exportRace()).pits[0].exitMs).toBeUndefined();
+ const result=await api.operateRace({type:"pit-exit",teamId:"t",driverId:"b",kart:"99",checks:{plate:true,sensor:true,weighed:true,ballast:true}});expect(result.pits[0].valid).toBe(true);
+ const backup=await api.exportRace();expect(backup.teams[0].kart).toBe("99");expect(before.teams[0].kart).toBe("17");
+ expect(JSON.parse(await readFile(path.join(directory,"session.json"),"utf8")).teams[0].kart).toBe("99");
+ await api.operateRace({type:"import",text:JSON.stringify(backup),format:"json",replay:true});
+ await api.operateRace({type:"playback",action:"play",speed:0});
+ const replay=await api.readRace();expect(replay.phase).toBe("finished");expect(replay.pits[0]).toMatchObject({oldKart:"17",newKart:"99",valid:true});expect(replay.stints).toHaveLength(2);
+ });
+});

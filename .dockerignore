@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.npm-cache
+.runtime
+artifacts
+data
+.env
+.env.local
+.env.production
+*.log
+*.tsbuildinfo
+.mylaptime-profile
+captures
+.next-production
