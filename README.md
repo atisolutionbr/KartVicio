@@ -40,3 +40,4 @@ npm run build
 
 A implantação usa serviço independente em `/kart`, sem menus no United. Segredos e dados locais não são versionados. A senha padrão é recusada em produção; configure `.env.production` a partir do exemplo.
 - [Auditoria, modelo e limitações](docs/AUDITORIA.md)
+- [Resultados de validação e implantação](docs/VALIDACAO.md)
