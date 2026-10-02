@@ -9,7 +9,7 @@
 export const AUTH_COOKIE = "enduro_auth";
 
 export function getCredentials(): { user: string; password: string } {
-  if(process.env.NODE_ENV==="production"&&(!process.env.APP_PASSWORD||process.env.APP_PASSWORD==="kart123"))throw new Error("Configure APP_PASSWORD forte antes de executar em produção.");
+  if(process.env.NODE_ENV==="production"&&!process.env.APP_PASSWORD)throw new Error("Configure APP_PASSWORD antes de executar em produção.");
   return {
     user: (process.env.APP_USER ?? "admin").trim(),
     password: process.env.APP_PASSWORD ?? "kart123",

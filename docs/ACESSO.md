@@ -1,6 +1,6 @@
 # Acesso e identidade visual
 
-O ambiente local usa as credenciais de desenvolvimento; a VPS usa APP_USER e APP_PASSWORD do arquivo privado /opt/kart-vicio/.env.production. As senhas não são versionadas. A senha local não é aceita automaticamente em produção.
+O ambiente local e a VPS usam as mesmas credenciais, conforme solicitado pelo proprietário. Na VPS, APP_USER e APP_PASSWORD são definidos explicitamente no arquivo privado /opt/kart-vicio/.env.production. Esse arquivo não é versionado. Produção exige APP_PASSWORD configurada e nunca utiliza automaticamente a senha padrão de desenvolvimento.
 
 O formulário permite mostrar e ocultar a senha. Após autenticar, uma navegação completa atualiza a sessão e respeita o prefixo /kart. Falhas de conexão têm limite de 15 segundos e mensagem na tela.
 
