@@ -8,7 +8,7 @@ Aplicativo publicado em https://united.atisolution.com.br/kart. Repositório: ht
 - ESLint e compilação com TypeScript passaram. Produção compilada em Linux na própria VPS, com Next.js standalone.
 - Fluxo completo no navegador passou nas versões local e compilada com /kart: login, ingestão protegida, pilotos, equipes, troca de piloto, checklist de box, persistência após recarga, replay de backup e simulação até o fim. 15 rotas, nenhum erro JavaScript.
 - 14 telas verificadas com dados carregados em 320, 390, 768 e 1440 pixels. Sem transbordamento horizontal da página; tabelas mantêm rolagem interna.
-- PWA validado em HTTPS: manifesto, PNGs, escala 70%/100%, preferência persistente, service worker ativo e tela offline. Escopo /kart inclui a raiz canônica sem barra final; o worker usa cache kart-offline-v2 e não guarda dados de corrida.
+- PWA validado em HTTPS: manifesto, PNGs, escala fixa de 70%, sem avisos visíveis, service worker ativo e tela offline. Escopo /kart inclui a raiz canônica sem barra final; o worker usa cache kart-offline-v2 e não guarda dados de corrida.
 - /kart redireciona para /kart/login quando não há sessão. /kart/api/health responde 200. O container kart-vicio-kart-1 ficou saudável.
 - Volume kart-vicio_kart_data montado em /data/race-control, leitura e escrita habilitadas; o usuário do aplicativo passou na conferência de permissão de gravação.
 - United permaneceu atendendo na raiz, com seus containers e menus preservados. A única integração de infraestrutura foi o encaminhamento /kart no Nginx do host, validado com nginx -t e backup da configuração.

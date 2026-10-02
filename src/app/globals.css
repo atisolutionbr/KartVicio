@@ -64,8 +64,6 @@ body {
 main, section, header, form { min-width: 0; }
 input, select, textarea { max-width: 100%; }
 button, a, label { overflow-wrap: anywhere; }
-.pwa-controls { margin-left: 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
-@media (min-width: 1024px) { .pwa-controls { margin-left: 16rem; } }
 @media (max-width: 640px) {
   body { font-size: 20px; }
   button, input:not([type="checkbox"]), select { min-height: 64px; }

@@ -1,8 +1,9 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Flag, Lock, User } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { Eye, EyeOff, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { appUrl } from "@/lib/app-url";
 
@@ -11,7 +12,7 @@ import { appUrl } from "@/lib/app-url";
  * redireciona pra cá quando não há sessão; ao entrar, volta pra rota de origem (?from).
  */
 function LoginForm() {
-  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => { const timer = setTimeout(() => setHydrated(true), 0); return () => clearTimeout(timer); }, []);
   const params = useSearchParams();
@@ -30,11 +31,11 @@ function LoginForm() {
       const response = await fetch(appUrl("/api/auth/login"), {
         method: "POST",
         headers: { "content-type": "application/json" },
+        signal: AbortSignal.timeout(15000),
         body: JSON.stringify({ user, password }),
       });
       if (response.ok) {
-        router.replace(from);
-        router.refresh();
+        window.location.replace(appUrl(from));
         return;
       }
       const data = (await response.json().catch(() => ({}))) as { error?: string };
@@ -47,14 +48,11 @@ function LoginForm() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0b1220] px-4 text-white">
+    <main className="flex min-h-[calc(100dvh/0.7)] items-center justify-center bg-[#0b1220] px-4 py-8 text-white">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/15 text-sky-300">
-            <Flag className="h-6 w-6" />
-          </div>
-          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-300">Enduro</div>
-          <h1 className="mt-1 text-2xl font-bold">Race Control</h1>
+          <Image src={appUrl("/icons/kart-vicio-logo.jpeg")} alt="Kart Vício" width={240} height={240} priority unoptimized className="mx-auto mb-5 rounded-2xl" />
+          <h1 className="mt-1 text-2xl font-bold">Entrar no Kart Vício</h1>
           <p className="mt-2 text-sm text-slate-400">Acesso restrito a equipe. Informe a senha.</p>
         </div>
 
@@ -67,6 +65,9 @@ function LoginForm() {
                 disabled={!hydrated}
                 type="text"
                 autoComplete="username"
+                name="username"
+                autoCapitalize="none"
+                spellCheck={false}
                 value={user}
                 onChange={(event) => setUser(event.target.value)}
                 className="h-11 w-full rounded-md border border-white/15 bg-[#0b1220] pl-9 pr-3 text-sm text-white outline-none ring-sky-500 focus:ring-2"
@@ -80,19 +81,21 @@ function LoginForm() {
               <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
                 disabled={!hydrated}
-                type="password"
+                type={showPassword ? "text" : "password"}
                 autoFocus
                 autoComplete="current-password"
+                name="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="h-11 w-full rounded-md border border-white/15 bg-[#0b1220] pl-9 pr-3 text-sm text-white outline-none ring-sky-500 focus:ring-2"
+                className="h-11 w-full rounded-md border border-white/15 bg-[#0b1220] pl-9 pr-14 text-sm text-white outline-none ring-sky-500 focus:ring-2"
                 placeholder="••••••••"
               />
+              <button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} aria-pressed={showPassword} className="absolute right-1 top-0 flex h-full w-12 items-center justify-center text-slate-400">{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button>
             </span>
           </label>
 
           {error && (
-            <p className="mt-3 rounded-md border-l-2 border-red-500 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+            <p role="alert" className="mt-3 rounded-md border-l-2 border-red-500 bg-red-500/10 px-3 py-2 text-sm text-red-300">
               {error}
             </p>
           )}
@@ -102,7 +105,7 @@ function LoginForm() {
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-xs text-slate-500">FDK 100 Milhas Endurance · Jardim Camburi</p>
+        <p className="mt-4 text-center text-xs text-slate-500">Kart é paixão, vício é pura adrenalina.</p>
       </div>
     </main>
   );

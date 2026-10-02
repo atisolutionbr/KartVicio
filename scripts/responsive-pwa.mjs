@@ -20,8 +20,7 @@ for(const route of routes){await page.goto(path(route),{waitUntil:'domcontentloa
 await page.screenshot({path:`artifacts/responsive-${width}.png`,fullPage:false});
 }
 await page.goto(path('/'));assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).zoom),'0.7');
-await page.getByRole('button',{name:'Escala 70%. Alternar escala',exact:true}).click();assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).zoom),'1');await page.reload();await page.getByRole('button',{name:'Escala 100%. Alternar escala',exact:true}).waitFor();
-await page.getByRole('button',{name:'Escala 100%. Alternar escala',exact:true}).click();
+assert.equal(await page.getByText(/Escala 70%|Para instalar:|Instalar KartVicio/).count(),0);
 await page.evaluate(async()=>{await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>setTimeout(()=>reject(new Error("PWA não ativou no escopo atual")),20000))]);});await page.reload();await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
 await context.setOffline(true);await page.goto(path('/history'),{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'Sem conexão com o servidor'}).waitFor();await context.setOffline(false);
 assert.deepEqual(errors,[]);console.log(JSON.stringify({status:'passed',widths:[320,390,768,1440],routes:routes.length,manifest:true,icons:true,scale:true,offlineFallback:true}));

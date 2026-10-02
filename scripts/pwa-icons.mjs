@@ -1,6 +1,14 @@
-import { deflateSync } from 'node:zlib';
-import { mkdir,writeFile } from 'node:fs/promises';
-function crc(bytes){let c=0xffffffff;for(const b of bytes){c^=b;for(let j=0;j<8;j++)c=(c>>>1)^((c&1)?0xedb88320:0);}return (c^0xffffffff)>>>0;}
-function chunk(type,data){const name=Buffer.from(type),length=Buffer.alloc(4),checksum=Buffer.alloc(4);length.writeUInt32BE(data.length);checksum.writeUInt32BE(crc(Buffer.concat([name,data])));return Buffer.concat([length,name,data,checksum]);}
-await mkdir('public/icons',{recursive:true});
-for(const size of [192,512]){const rows=Buffer.alloc(size*(1+size*4));for(let y=0;y<size;y++){const row=y*(1+size*4);for(let x=0;x<size;x++){const u=x/size,v=y/size;let color=[17,24,39];if(u>.25&&u<.75&&v>.25&&v<.65){const checker=(Math.floor((u-.25)*12)+Math.floor((v-.25)*12))%2;color=checker?[56,189,248]:[255,255,255];}if(u>.23&&u<.26&&v>.23&&v<.8)color=[255,255,255];if(v>.76&&v<.8&&u>.35&&u<.75)color=[56,189,248];const p=row+1+x*4;rows[p]=color[0];rows[p+1]=color[1];rows[p+2]=color[2];rows[p+3]=255;}}const header=Buffer.alloc(13);header.writeUInt32BE(size,0);header.writeUInt32BE(size,4);header[8]=8;header[9]=6;await writeFile(`public/icons/icon-${size}.png`,Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(rows)),chunk('IEND',Buffer.alloc(0))]));}
+import sharp from 'sharp';
+import { writeFile } from 'node:fs/promises';
+const source = 'public/icons/kart-vicio-logo.jpeg';
+for (const size of [32, 180, 192, 512]) {
+  await sharp(source).resize(size, size).png().toFile('public/icons/kart-vicio-' + size + '.png');
+}
+// ICO container with the same supplied logo as a PNG image.
+const png = await sharp(source).resize(48, 48).ensureAlpha().png().toBuffer();
+const header = Buffer.alloc(22);
+header.writeUInt16LE(1, 2); header.writeUInt16LE(1, 4);
+header[6] = 48; header[7] = 48;
+header.writeUInt16LE(1, 10); header.writeUInt16LE(32, 12);
+header.writeUInt32LE(png.length, 14); header.writeUInt32LE(22, 18);
+await writeFile('src/app/favicon.ico', Buffer.concat([header, png]));

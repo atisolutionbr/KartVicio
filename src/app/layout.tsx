@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "Controle e análise de corridas de kart endurance",
   manifest: appUrl("/manifest.webmanifest"),
   appleWebApp: { capable: true, title: "KartVicio", statusBarStyle: "default" },
-  icons: { icon: appUrl("/icons/icon-192.png"), apple: appUrl("/icons/icon-192.png") },
+  icons: { icon: [{ url: appUrl("/icons/kart-vicio-32.png"), sizes: "32x32", type: "image/png" }], apple: appUrl("/icons/kart-vicio-180.png") },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#111827", viewportFit: "cover" };
 

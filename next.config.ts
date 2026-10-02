@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const nextConfig: NextConfig = {
   basePath,
+  devIndicators: false,
   distDir: process.env.KART_BUILD_DIR === "production" ? ".next-production" : ".next",
   output: "standalone",
   turbopack: { root: process.cwd() },

@@ -1,6 +1,8 @@
 "use client";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { appUrl } from "@/lib/app-url";
 import { BarChart3, Flag, Gauge, LayoutDashboard, Radio, Settings2, Tablet, Timer, UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "@/components/logout-button";
@@ -36,9 +38,7 @@ export function AppShell({
     <div className="min-h-screen bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-border bg-[#111827] text-white lg:flex lg:flex-col">
         <div className="border-b border-white/10 px-5 py-5">
-          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-300">
-            Enduro
-          </div>
+          <Image src={appUrl("/icons/kart-vicio-logo.jpeg")} alt="Kart Vício" width={96} height={96} unoptimized className="mb-2 rounded-xl" />
           <div className="mt-1 text-xl font-bold">Race Control</div>
           <div className="mt-2 text-xs leading-5 text-slate-300">
             Estrategia de box, pilotos e ritmo para endurance.
@@ -79,9 +79,10 @@ export function AppShell({
       <div className="lg:pl-64">
         <div className="sticky top-0 z-10 border-b border-border bg-background/95 px-4 py-3 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between gap-3">
-            <div>
+            <div className="flex items-center gap-3">
+              <Image src={appUrl("/icons/kart-vicio-logo.jpeg")} alt="Kart Vício" width={56} height={56} unoptimized className="rounded-lg" />
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
-                Enduro
+                Kart Vício
               </div>
               <div className="font-bold">Race Control</div>
             </div>
