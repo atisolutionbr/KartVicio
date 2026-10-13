@@ -18,4 +18,4 @@ Teste de integridade inicial: `node server/smoke-test.mjs`. Compara os registros
 
 O administrador local é jonatha.soares@atisolution.com.br, com a senha definida pelo proprietário. Google e Microsoft têm integração OIDC implementada, mas ficam desativados até preencher as credenciais próprias dos provedores; consulte OAUTH.md. Os 124 registros de permissões de usuários estão preservados, incluindo status e campeonatos. Nenhuma senha dos usuários foi presumida ou convertida a partir dos e-mails. Contas e sessões da plataforma não são equivalentes a essas permissões. O cadastro de autenticação `User` não pôde ser exportado pelo endpoint de entidades. Envio de convites por e-mail e MCP da plataforma ainda não estão configurados.
 
-Nenhum push ao GitHub ou deploy na VPS foi realizado nesta etapa local. Não publicar o banco, exportações ou `.env` no Git.
+Código publicado no GitHub e aplicação publicada na VPS em 13/10/2026. Consulte DEPLOY.md. Não publicar o banco, exportações ou `.env` no Git. Os bancos local e de produção são independentes após a migração.
