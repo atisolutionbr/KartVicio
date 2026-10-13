@@ -1,0 +1,63 @@
+{
+  "name": "LogAlteracao",
+  "type": "object",
+  "properties": {
+    "entidade": {
+      "type": "string",
+      "description": "Nome da entidade alterada (ex: ResultadoEtapa, Penalidade)"
+    },
+    "entidade_id": {
+      "type": "string",
+      "description": "ID do registro alterado"
+    },
+    "operacao": {
+      "type": "string",
+      "enum": [
+        "criar",
+        "editar",
+        "excluir",
+        "descartar",
+        "finalizar_etapa"
+      ],
+      "description": "Tipo de opera\u00e7\u00e3o"
+    },
+    "usuario_nome": {
+      "type": "string",
+      "description": "Nome do usu\u00e1rio que realizou a altera\u00e7\u00e3o"
+    },
+    "usuario_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que realizou a altera\u00e7\u00e3o"
+    },
+    "campeonato_id": {
+      "type": "string",
+      "description": "ID do campeonato relacionado"
+    },
+    "etapa_id": {
+      "type": "string",
+      "description": "ID da etapa relacionada"
+    },
+    "piloto_nome": {
+      "type": "string",
+      "description": "Nome do piloto relacionado"
+    },
+    "valor_anterior": {
+      "type": "string",
+      "description": "Valor anterior (JSON serializado)"
+    },
+    "valor_novo": {
+      "type": "string",
+      "description": "Valor novo (JSON serializado)"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o leg\u00edvel da altera\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "entidade",
+    "operacao",
+    "usuario_nome",
+    "descricao"
+  ]
+}

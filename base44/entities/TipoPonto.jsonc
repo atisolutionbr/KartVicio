@@ -1,0 +1,23 @@
+{
+  "name": "TipoPonto",
+  "type": "object",
+  "properties": {
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do tipo de ponto (ex: Pole Position, Volta Mais R\u00e1pida Geral)"
+    },
+    "valor": {
+      "type": "number",
+      "description": "Valor do ponto (positivo ou negativo, aceita decimais como 0.25)"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o tipo de ponto est\u00e1 ativo"
+    }
+  },
+  "required": [
+    "descricao",
+    "valor"
+  ]
+}

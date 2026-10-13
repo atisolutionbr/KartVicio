@@ -1,0 +1,52 @@
+{
+  "name": "Penalidade",
+  "type": "object",
+  "properties": {
+    "campeonato_id": {
+      "type": "string",
+      "description": "ID do campeonato"
+    },
+    "etapa_id": {
+      "type": "string",
+      "description": "ID da etapa"
+    },
+    "piloto_nome": {
+      "type": "string",
+      "description": "Nome do piloto penalizado"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categoria do piloto penalizado"
+    },
+    "pontos_penalidade": {
+      "type": "number",
+      "default": 0,
+      "description": "Pontos de penalidade aplicados"
+    },
+    "posicao_inicial": {
+      "type": "number",
+      "description": "Posi\u00e7\u00e3o antes da penalidade"
+    },
+    "posicao_final": {
+      "type": "number",
+      "description": "Posi\u00e7\u00e3o ap\u00f3s penalidade"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "posicao",
+        "tempo"
+      ],
+      "description": "Tipo da penalidade"
+    },
+    "observacao": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre a penalidade"
+    }
+  },
+  "required": [
+    "etapa_id",
+    "piloto_nome",
+    "tipo"
+  ]
+}

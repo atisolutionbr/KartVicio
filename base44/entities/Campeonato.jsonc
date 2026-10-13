@@ -1,0 +1,74 @@
+{
+  "name": "Campeonato",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do campeonato"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do campeonato"
+    },
+    "ano": {
+      "type": "number",
+      "description": "Ano do campeonato"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o campeonato est\u00e1 ativo"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL da logo do campeonato (exibida no card e cabe\u00e7alhos)"
+    },
+    "numero_etapas_planejadas": {
+      "type": "number",
+      "description": "Total de etapas planejadas"
+    },
+    "descarte_ativo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a regra de descarte est\u00e1 ativa"
+    },
+    "descarte_min_etapas": {
+      "type": "number",
+      "default": 10,
+      "description": "N\u00famero m\u00ednimo de etapas para ativar o descarte"
+    },
+    "descarte_quantidade": {
+      "type": "number",
+      "default": 1,
+      "description": "Quantidade de etapas descart\u00e1veis por piloto"
+    },
+    "pontos_melhor_volta": {
+      "type": "number",
+      "default": 1,
+      "description": "Pontos concedidos pela melhor volta"
+    },
+    "categorias": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "cor": {
+            "type": "string"
+          }
+        }
+      },
+      "default": [],
+      "description": "Categorias do campeonato (ex: A, B, C ou J\u00fanior, S\u00eanior)"
+    }
+  },
+  "required": [
+    "nome",
+    "ano"
+  ]
+}

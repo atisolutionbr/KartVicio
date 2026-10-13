@@ -1,0 +1,41 @@
+{
+  "name": "Usuario",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome completo do usu\u00e1rio"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email para login (deve ser o da conta Google)"
+    },
+    "permissao": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "operador",
+        "visualizador"
+      ],
+      "default": "visualizador",
+      "description": "N\u00edvel de permiss\u00e3o"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o usu\u00e1rio est\u00e1 ativo"
+    },
+    "campeonatos_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "IDs dos campeonatos aos quais o usu\u00e1rio tem acesso (vazio = acesso a todos para admin)"
+    }
+  },
+  "required": [
+    "nome",
+    "email"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "Pontuacao",
+  "type": "object",
+  "properties": {
+    "piloto_nome": {
+      "type": "string",
+      "description": "Nome do piloto"
+    },
+    "etapa": {
+      "type": "number",
+      "description": "N\u00famero da etapa (1-10)"
+    },
+    "posicao": {
+      "type": "string",
+      "description": "Posi\u00e7\u00e3o final na etapa (1\u00ba, 2\u00ba, etc.)"
+    },
+    "pontos": {
+      "type": "number",
+      "description": "Pontos conquistados na etapa"
+    },
+    "observacao": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es (DNS, DNF, etc.)"
+    }
+  },
+  "required": [
+    "piloto_nome",
+    "etapa",
+    "pontos"
+  ]
+}

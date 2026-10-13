@@ -1,0 +1,35 @@
+{
+  "name": "Piloto",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome completo do piloto"
+    },
+    "peso": {
+      "type": "number",
+      "description": "Peso do piloto em kg"
+    },
+    "idade": {
+      "type": "number",
+      "description": "Idade do piloto"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone de contato"
+    },
+    "nome_equipe": {
+      "type": "string",
+      "description": "Nome da equipe"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o piloto est\u00e1 ativo na temporada (inativo n\u00e3o aparece nos forms)"
+    }
+  },
+  "required": [
+    "nome",
+    "peso"
+  ]
+}

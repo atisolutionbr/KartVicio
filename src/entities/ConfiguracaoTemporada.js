@@ -1,0 +1,1 @@
+export {ConfiguracaoTemporada} from './all';

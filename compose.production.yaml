@@ -1,0 +1,42 @@
+name: kartvicio-platform
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kartvicio
+      POSTGRES_USER: kartvicio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U kartvicio -d kartvicio]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_ORIGIN: https://kartvicio.atisolution.com.br
+      BIND_HOST: 0.0.0.0
+      TRUST_PROXY: '1'
+      PGHOST: db
+      PGPORT: '5432'
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET:-}
+    ports:
+      - '127.0.0.1:16300:6300'
+    volumes:
+      - uploads:/app/private-data/uploads
+volumes:
+  postgres_data:
+  uploads:

@@ -1,0 +1,18 @@
+{
+  "name": "ConfiguracaoTemporada",
+  "type": "object",
+  "properties": {
+    "ano": {
+      "type": "number",
+      "description": "Ano da temporada"
+    },
+    "numero_etapas": {
+      "type": "number",
+      "description": "N\u00famero total de etapas planejadas para a temporada"
+    }
+  },
+  "required": [
+    "ano",
+    "numero_etapas"
+  ]
+}

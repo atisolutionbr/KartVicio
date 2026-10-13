@@ -1,0 +1,94 @@
+{
+  "name": "ResultadoEtapa",
+  "type": "object",
+  "properties": {
+    "campeonato_id": {
+      "type": "string",
+      "description": "ID do campeonato"
+    },
+    "ano": {
+      "type": "number",
+      "description": "Ano da temporada"
+    },
+    "etapa_id": {
+      "type": "string",
+      "description": "ID da etapa"
+    },
+    "piloto_nome": {
+      "type": "string",
+      "description": "Nome do piloto"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categoria do piloto nesta etapa (ex: A, B, J\u00fanior)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "regular",
+        "NC",
+        "DQ"
+      ],
+      "default": "regular",
+      "description": "Status do resultado: regular (com coloca\u00e7\u00e3o), NC (n\u00e3o completou), DQ (desqualificado). NC e DQ n\u00e3o pontuam mas registram participa\u00e7\u00e3o no grid."
+    },
+    "posicao": {
+      "type": "number",
+      "description": "Posi\u00e7\u00e3o final do piloto (0 quando status NC/DQ)"
+    },
+    "pontos": {
+      "type": "number",
+      "description": "Pontos pela posi\u00e7\u00e3o"
+    },
+    "pontos_melhor_volta": {
+      "type": "number",
+      "default": 0,
+      "description": "Pontos pela melhor volta"
+    },
+    "pontos_tipo_extra": {
+      "type": "number",
+      "default": 0,
+      "description": "Pontos extras por tipos de ponto aplicados (soma)"
+    },
+    "tipos_ponto_aplicados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo_id": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "valor": {
+            "type": "number"
+          }
+        }
+      },
+      "default": [],
+      "description": "Lista de tipos de ponto aplicados a este resultado"
+    },
+    "pontos_penalidade": {
+      "type": "number",
+      "default": 0,
+      "description": "Pontos perdidos por penalidade (calculado automaticamente)"
+    },
+    "pontos_totais": {
+      "type": "number",
+      "description": "Pontos totais da etapa (calculado automaticamente)"
+    },
+    "descartado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o resultado deve ser descartado da pontua\u00e7\u00e3o final"
+    }
+  },
+  "required": [
+    "ano",
+    "etapa_id",
+    "piloto_nome",
+    "posicao",
+    "pontos"
+  ]
+}

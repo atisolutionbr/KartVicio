@@ -1,0 +1,8 @@
+.git
+node_modules
+dist
+.env
+.env.*
+private-data
+backups
+base44/.app.jsonc

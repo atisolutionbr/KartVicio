@@ -1,0 +1,658 @@
+[
+  {
+    "name": "Campeonato.jsonc",
+    "path": "base44/entities/Campeonato.jsonc"
+  },
+  {
+    "name": "ConfiguracaoTemporada.jsonc",
+    "path": "base44/entities/ConfiguracaoTemporada.jsonc"
+  },
+  {
+    "name": "Etapa.jsonc",
+    "path": "base44/entities/Etapa.jsonc"
+  },
+  {
+    "name": "InscricaoPiloto.jsonc",
+    "path": "base44/entities/InscricaoPiloto.jsonc"
+  },
+  {
+    "name": "LogAlteracao.jsonc",
+    "path": "base44/entities/LogAlteracao.jsonc"
+  },
+  {
+    "name": "Penalidade.jsonc",
+    "path": "base44/entities/Penalidade.jsonc"
+  },
+  {
+    "name": "Piloto.jsonc",
+    "path": "base44/entities/Piloto.jsonc"
+  },
+  {
+    "name": "Pontuacao.jsonc",
+    "path": "base44/entities/Pontuacao.jsonc"
+  },
+  {
+    "name": "ResultadoEtapa.jsonc",
+    "path": "base44/entities/ResultadoEtapa.jsonc"
+  },
+  {
+    "name": "TabelaPontos.jsonc",
+    "path": "base44/entities/TabelaPontos.jsonc"
+  },
+  {
+    "name": "TabelaPontosCampeonato.jsonc",
+    "path": "base44/entities/TabelaPontosCampeonato.jsonc"
+  },
+  {
+    "name": "TipoPonto.jsonc",
+    "path": "base44/entities/TipoPonto.jsonc"
+  },
+  {
+    "name": "Usuario.jsonc",
+    "path": "base44/entities/Usuario.jsonc"
+  },
+  {
+    "name": "config.jsonc",
+    "path": "base44/config.jsonc"
+  },
+  {
+    "name": "manifest.json",
+    "path": "public/manifest.json"
+  },
+  {
+    "name": "sw.js",
+    "path": "public/sw.js"
+  },
+  {
+    "name": "base44Client.js",
+    "path": "src/api/base44Client.js"
+  },
+  {
+    "name": "CampeonatoCard.jsx",
+    "path": "src/components/campeonato-publico/CampeonatoCard.jsx"
+  },
+  {
+    "name": "RankingDescarteTable.jsx",
+    "path": "src/components/campeonato-publico/RankingDescarteTable.jsx"
+  },
+  {
+    "name": "RankingDetalhadoTable.jsx",
+    "path": "src/components/campeonato-publico/RankingDetalhadoTable.jsx"
+  },
+  {
+    "name": "RankingResumoTable.jsx",
+    "path": "src/components/campeonato-publico/RankingResumoTable.jsx"
+  },
+  {
+    "name": "CampeonatoForm.jsx",
+    "path": "src/components/campeonatos/CampeonatoForm.jsx"
+  },
+  {
+    "name": "CampeonatoLogo.jsx",
+    "path": "src/components/campeonatos/CampeonatoLogo.jsx"
+  },
+  {
+    "name": "CampeonatoSelector.jsx",
+    "path": "src/components/campeonatos/CampeonatoSelector.jsx"
+  },
+  {
+    "name": "CategoriasManager.jsx",
+    "path": "src/components/campeonatos/CategoriasManager.jsx"
+  },
+  {
+    "name": "EtapasChart.jsx",
+    "path": "src/components/dashboard/EtapasChart.jsx"
+  },
+  {
+    "name": "RankingTable.jsx",
+    "path": "src/components/dashboard/RankingTable.jsx"
+  },
+  {
+    "name": "StatsCards.jsx",
+    "path": "src/components/dashboard/StatsCards.jsx"
+  },
+  {
+    "name": "EtapaForm.jsx",
+    "path": "src/components/etapas/EtapaForm.jsx"
+  },
+  {
+    "name": "PenalidadeForm.jsx",
+    "path": "src/components/penalidades/PenalidadeForm.jsx"
+  },
+  {
+    "name": "PenalidadeRowCard.jsx",
+    "path": "src/components/penalidades/PenalidadeRowCard.jsx"
+  },
+  {
+    "name": "CompararPilotosPanel.jsx",
+    "path": "src/components/pilotos/CompararPilotosPanel.jsx"
+  },
+  {
+    "name": "EvolucaoPilotoChart.jsx",
+    "path": "src/components/pilotos/EvolucaoPilotoChart.jsx"
+  },
+  {
+    "name": "PilotoCombobox.jsx",
+    "path": "src/components/pilotos/PilotoCombobox.jsx"
+  },
+  {
+    "name": "PilotoForm.jsx",
+    "path": "src/components/pilotos/PilotoForm.jsx"
+  },
+  {
+    "name": "usePilotosCadastro.js",
+    "path": "src/components/pilotos/usePilotosCadastro.js"
+  },
+  {
+    "name": "vinculosPilotos.js",
+    "path": "src/components/pilotos/vinculosPilotos.js"
+  },
+  {
+    "name": "PontuacaoForm.jsx",
+    "path": "src/components/pontuacoes/PontuacaoForm.jsx"
+  },
+  {
+    "name": "InstallPwaPrompt.jsx",
+    "path": "src/components/pwa/InstallPwaPrompt.jsx"
+  },
+  {
+    "name": "PwaViewport.jsx",
+    "path": "src/components/pwa/PwaViewport.jsx"
+  },
+  {
+    "name": "carregarResultadosRanking.js",
+    "path": "src/components/ranking/carregarResultadosRanking.js"
+  },
+  {
+    "name": "RankingCard.jsx",
+    "path": "src/components/ranking/RankingCard.jsx"
+  },
+  {
+    "name": "DiferencaPontosPilotos.jsx",
+    "path": "src/components/relatorios/DiferencaPontosPilotos.jsx"
+  },
+  {
+    "name": "EvolucaoPontosChart.jsx",
+    "path": "src/components/relatorios/EvolucaoPontosChart.jsx"
+  },
+  {
+    "name": "FiltroEtapaCategoria.jsx",
+    "path": "src/components/relatorios/FiltroEtapaCategoria.jsx"
+  },
+  {
+    "name": "MediasRelatorios.jsx",
+    "path": "src/components/relatorios/MediasRelatorios.jsx"
+  },
+  {
+    "name": "PontuacaoEtapaEtapa.jsx",
+    "path": "src/components/relatorios/PontuacaoEtapaEtapa.jsx"
+  },
+  {
+    "name": "PontuacaoPilotoCards.jsx",
+    "path": "src/components/relatorios/PontuacaoPilotoCards.jsx"
+  },
+  {
+    "name": "ReportRowCard.jsx",
+    "path": "src/components/relatorios/ReportRowCard.jsx"
+  },
+  {
+    "name": "ResponsiveReportTable.jsx",
+    "path": "src/components/relatorios/ResponsiveReportTable.jsx"
+  },
+  {
+    "name": "EvolucaoPontosPanel.jsx",
+    "path": "src/components/resultados/EvolucaoPontosPanel.jsx"
+  },
+  {
+    "name": "FinalizarEtapa.jsx",
+    "path": "src/components/resultados/FinalizarEtapa.jsx"
+  },
+  {
+    "name": "HistoricoAlteracoes.jsx",
+    "path": "src/components/resultados/HistoricoAlteracoes.jsx"
+  },
+  {
+    "name": "ImportarCSV.jsx",
+    "path": "src/components/resultados/ImportarCSV.jsx"
+  },
+  {
+    "name": "PdfEtapa.jsx",
+    "path": "src/components/resultados/PdfEtapa.jsx"
+  },
+  {
+    "name": "ResultadoForm.jsx",
+    "path": "src/components/resultados/ResultadoForm.jsx"
+  },
+  {
+    "name": "ResultadoRowCard.jsx",
+    "path": "src/components/resultados/ResultadoRowCard.jsx"
+  },
+  {
+    "name": "ComparadorEvolucaoChart.jsx",
+    "path": "src/components/simulador/ComparadorEvolucaoChart.jsx"
+  },
+  {
+    "name": "ComparadorPilotos.jsx",
+    "path": "src/components/simulador/ComparadorPilotos.jsx"
+  },
+  {
+    "name": "SimularEtapasPanel.jsx",
+    "path": "src/components/simulador/SimularEtapasPanel.jsx"
+  },
+  {
+    "name": "TabelaPontosForm.jsx",
+    "path": "src/components/tabela-pontos/TabelaPontosForm.jsx"
+  },
+  {
+    "name": "accordion.jsx",
+    "path": "src/components/ui/accordion.jsx"
+  },
+  {
+    "name": "alert-dialog.jsx",
+    "path": "src/components/ui/alert-dialog.jsx"
+  },
+  {
+    "name": "alert.jsx",
+    "path": "src/components/ui/alert.jsx"
+  },
+  {
+    "name": "aspect-ratio.jsx",
+    "path": "src/components/ui/aspect-ratio.jsx"
+  },
+  {
+    "name": "avatar.jsx",
+    "path": "src/components/ui/avatar.jsx"
+  },
+  {
+    "name": "badge.jsx",
+    "path": "src/components/ui/badge.jsx"
+  },
+  {
+    "name": "breadcrumb.jsx",
+    "path": "src/components/ui/breadcrumb.jsx"
+  },
+  {
+    "name": "button.jsx",
+    "path": "src/components/ui/button.jsx"
+  },
+  {
+    "name": "calendar.jsx",
+    "path": "src/components/ui/calendar.jsx"
+  },
+  {
+    "name": "card.jsx",
+    "path": "src/components/ui/card.jsx"
+  },
+  {
+    "name": "carousel.jsx",
+    "path": "src/components/ui/carousel.jsx"
+  },
+  {
+    "name": "chart.jsx",
+    "path": "src/components/ui/chart.jsx"
+  },
+  {
+    "name": "checkbox.jsx",
+    "path": "src/components/ui/checkbox.jsx"
+  },
+  {
+    "name": "collapsible.jsx",
+    "path": "src/components/ui/collapsible.jsx"
+  },
+  {
+    "name": "command.jsx",
+    "path": "src/components/ui/command.jsx"
+  },
+  {
+    "name": "context-menu.jsx",
+    "path": "src/components/ui/context-menu.jsx"
+  },
+  {
+    "name": "dialog.jsx",
+    "path": "src/components/ui/dialog.jsx"
+  },
+  {
+    "name": "drawer.jsx",
+    "path": "src/components/ui/drawer.jsx"
+  },
+  {
+    "name": "dropdown-menu.jsx",
+    "path": "src/components/ui/dropdown-menu.jsx"
+  },
+  {
+    "name": "form.jsx",
+    "path": "src/components/ui/form.jsx"
+  },
+  {
+    "name": "hover-card.jsx",
+    "path": "src/components/ui/hover-card.jsx"
+  },
+  {
+    "name": "input-otp.jsx",
+    "path": "src/components/ui/input-otp.jsx"
+  },
+  {
+    "name": "input.jsx",
+    "path": "src/components/ui/input.jsx"
+  },
+  {
+    "name": "label.jsx",
+    "path": "src/components/ui/label.jsx"
+  },
+  {
+    "name": "menubar.jsx",
+    "path": "src/components/ui/menubar.jsx"
+  },
+  {
+    "name": "navigation-menu.jsx",
+    "path": "src/components/ui/navigation-menu.jsx"
+  },
+  {
+    "name": "pagination.jsx",
+    "path": "src/components/ui/pagination.jsx"
+  },
+  {
+    "name": "popover.jsx",
+    "path": "src/components/ui/popover.jsx"
+  },
+  {
+    "name": "progress.jsx",
+    "path": "src/components/ui/progress.jsx"
+  },
+  {
+    "name": "radio-group.jsx",
+    "path": "src/components/ui/radio-group.jsx"
+  },
+  {
+    "name": "resizable.jsx",
+    "path": "src/components/ui/resizable.jsx"
+  },
+  {
+    "name": "scroll-area.jsx",
+    "path": "src/components/ui/scroll-area.jsx"
+  },
+  {
+    "name": "select.jsx",
+    "path": "src/components/ui/select.jsx"
+  },
+  {
+    "name": "separator.jsx",
+    "path": "src/components/ui/separator.jsx"
+  },
+  {
+    "name": "sheet.jsx",
+    "path": "src/components/ui/sheet.jsx"
+  },
+  {
+    "name": "sidebar.jsx",
+    "path": "src/components/ui/sidebar.jsx"
+  },
+  {
+    "name": "skeleton.jsx",
+    "path": "src/components/ui/skeleton.jsx"
+  },
+  {
+    "name": "slider.jsx",
+    "path": "src/components/ui/slider.jsx"
+  },
+  {
+    "name": "sonner.jsx",
+    "path": "src/components/ui/sonner.jsx"
+  },
+  {
+    "name": "switch.jsx",
+    "path": "src/components/ui/switch.jsx"
+  },
+  {
+    "name": "table.jsx",
+    "path": "src/components/ui/table.jsx"
+  },
+  {
+    "name": "tabs.jsx",
+    "path": "src/components/ui/tabs.jsx"
+  },
+  {
+    "name": "textarea.jsx",
+    "path": "src/components/ui/textarea.jsx"
+  },
+  {
+    "name": "toast.jsx",
+    "path": "src/components/ui/toast.jsx"
+  },
+  {
+    "name": "toaster.jsx",
+    "path": "src/components/ui/toaster.jsx"
+  },
+  {
+    "name": "toggle-group.jsx",
+    "path": "src/components/ui/toggle-group.jsx"
+  },
+  {
+    "name": "toggle.jsx",
+    "path": "src/components/ui/toggle.jsx"
+  },
+  {
+    "name": "tooltip.jsx",
+    "path": "src/components/ui/tooltip.jsx"
+  },
+  {
+    "name": "use-toast.jsx",
+    "path": "src/components/ui/use-toast.jsx"
+  },
+  {
+    "name": "UsuarioForm.jsx",
+    "path": "src/components/usuarios/UsuarioForm.jsx"
+  },
+  {
+    "name": "AuthLayout.jsx",
+    "path": "src/components/AuthLayout.jsx"
+  },
+  {
+    "name": "BottomNav.jsx",
+    "path": "src/components/BottomNav.jsx"
+  },
+  {
+    "name": "ProtectedRoute.jsx",
+    "path": "src/components/ProtectedRoute.jsx"
+  },
+  {
+    "name": "SemAcessoCard.jsx",
+    "path": "src/components/SemAcessoCard.jsx"
+  },
+  {
+    "name": "UserNotRegisteredError.jsx",
+    "path": "src/components/UserNotRegisteredError.jsx"
+  },
+  {
+    "name": "use-mobile.jsx",
+    "path": "src/hooks/use-mobile.jsx"
+  },
+  {
+    "name": "useEntitySubscriptions.js",
+    "path": "src/hooks/useEntitySubscriptions.js"
+  },
+  {
+    "name": "useExcelExport.js",
+    "path": "src/hooks/useExcelExport.js"
+  },
+  {
+    "name": "usePdfExport.js",
+    "path": "src/hooks/usePdfExport.js"
+  },
+  {
+    "name": "app-params.js",
+    "path": "src/lib/app-params.js"
+  },
+  {
+    "name": "AuthContext.jsx",
+    "path": "src/lib/AuthContext.jsx"
+  },
+  {
+    "name": "PageNotFound.jsx",
+    "path": "src/lib/PageNotFound.jsx"
+  },
+  {
+    "name": "query-client.js",
+    "path": "src/lib/query-client.js"
+  },
+  {
+    "name": "utils.js",
+    "path": "src/lib/utils.js"
+  },
+  {
+    "name": "Calendario.jsx",
+    "path": "src/pages/Calendario.jsx"
+  },
+  {
+    "name": "CampeonatoDetalhe.jsx",
+    "path": "src/pages/CampeonatoDetalhe.jsx"
+  },
+  {
+    "name": "CampeonatoPublico.jsx",
+    "path": "src/pages/CampeonatoPublico.jsx"
+  },
+  {
+    "name": "Campeonatos.jsx",
+    "path": "src/pages/Campeonatos.jsx"
+  },
+  {
+    "name": "Dashboard.jsx",
+    "path": "src/pages/Dashboard.jsx"
+  },
+  {
+    "name": "Etapas.jsx",
+    "path": "src/pages/Etapas.jsx"
+  },
+  {
+    "name": "MigracaoDados.jsx",
+    "path": "src/pages/MigracaoDados.jsx"
+  },
+  {
+    "name": "OAuthConsent.jsx",
+    "path": "src/pages/OAuthConsent.jsx"
+  },
+  {
+    "name": "Penalidades.jsx",
+    "path": "src/pages/Penalidades.jsx"
+  },
+  {
+    "name": "PerfilPiloto.jsx",
+    "path": "src/pages/PerfilPiloto.jsx"
+  },
+  {
+    "name": "Pilotos.jsx",
+    "path": "src/pages/Pilotos.jsx"
+  },
+  {
+    "name": "Pontuacoes.jsx",
+    "path": "src/pages/Pontuacoes.jsx"
+  },
+  {
+    "name": "Relatorios.jsx",
+    "path": "src/pages/Relatorios.jsx"
+  },
+  {
+    "name": "Resultados.jsx",
+    "path": "src/pages/Resultados.jsx"
+  },
+  {
+    "name": "Simulador.jsx",
+    "path": "src/pages/Simulador.jsx"
+  },
+  {
+    "name": "TabelaPontos.jsx",
+    "path": "src/pages/TabelaPontos.jsx"
+  },
+  {
+    "name": "TipoPonto.jsx",
+    "path": "src/pages/TipoPonto.jsx"
+  },
+  {
+    "name": "Usuarios.jsx",
+    "path": "src/pages/Usuarios.jsx"
+  },
+  {
+    "name": "campeonatoAccess.js",
+    "path": "src/utils/campeonatoAccess.js"
+  },
+  {
+    "name": "descarte.js",
+    "path": "src/utils/descarte.js"
+  },
+  {
+    "name": "exportExcel.js",
+    "path": "src/utils/exportExcel.js"
+  },
+  {
+    "name": "index.ts",
+    "path": "src/utils/index.ts"
+  },
+  {
+    "name": "rankingCalc.js",
+    "path": "src/utils/rankingCalc.js"
+  },
+  {
+    "name": "rankingColors.js",
+    "path": "src/utils/rankingColors.js"
+  },
+  {
+    "name": "App.jsx",
+    "path": "src/App.jsx"
+  },
+  {
+    "name": "index.css",
+    "path": "src/index.css"
+  },
+  {
+    "name": "Layout.jsx",
+    "path": "src/Layout.jsx"
+  },
+  {
+    "name": "main.jsx",
+    "path": "src/main.jsx"
+  },
+  {
+    "name": "pages.config.js",
+    "path": "src/pages.config.js"
+  },
+  {
+    "name": ".gitignore",
+    "path": ".gitignore"
+  },
+  {
+    "name": "components.json",
+    "path": "components.json"
+  },
+  {
+    "name": "eslint.config.js",
+    "path": "eslint.config.js"
+  },
+  {
+    "name": "index.html",
+    "path": "index.html"
+  },
+  {
+    "name": "jsconfig.json",
+    "path": "jsconfig.json"
+  },
+  {
+    "name": "package.json",
+    "path": "package.json"
+  },
+  {
+    "name": "postcss.config.js",
+    "path": "postcss.config.js"
+  },
+  {
+    "name": "README.md",
+    "path": "README.md"
+  },
+  {
+    "name": "tailwind.config.js",
+    "path": "tailwind.config.js"
+  },
+  {
+    "name": "vite.config.js",
+    "path": "vite.config.js"
+  }
+]
