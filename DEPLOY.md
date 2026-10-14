@@ -29,9 +29,10 @@ Não substituir o arquivo ativo pelo modelo HTTP após emitir o certificado.
 O PWA instalado usa escala de 70%, com convite nativo em navegadores compatíveis
 e instrução para Adicionar à Tela de Início no iOS. Requer internet para dados.
 
-Credenciais Google configuradas fora do Git. A liberação do público no Google
-Cloud e o teste completo OAuth ainda precisam ser concluídos. Microsoft continua
-sem credenciais. As URLs de retorno em produção são:
+Credenciais Google configuradas fora do Git. Aplicativo Google publicado em
+produção em 14/10/2026. Login completo testado com o Gmail já cadastrado do
+proprietário: autenticação, retorno ao site, permissão admin e lista de 18 usuários.
+Microsoft continua sem credenciais. As URLs de retorno em produção são:
 - https://kartvicio.atisolution.com.br/api/auth/google/callback
 - https://kartvicio.atisolution.com.br/api/auth/microsoft/callback
 
