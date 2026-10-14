@@ -27,6 +27,7 @@ export default function UsuariosPage({ userPermissions }) {
 
   const loadAll = async () => {
     setLoading(true);
+    try {
     const [usuariosData, campsData] = await Promise.all([
       Usuario.list("-created_date"),
       Campeonato.list("-ano")
@@ -43,10 +44,15 @@ export default function UsuariosPage({ userPermissions }) {
     setPlatformUsers(platUsers);
     setUsuarios(usuariosData);
     setCampeonatos(campsData);
-    setLoading(false);
+    } catch (error) {
+      toast.error(error.message || 'Não foi possível carregar os usuários.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (usuarioData) => {
+    try {
     if (editingUsuario?.id) {
       await Usuario.update(editingUsuario.id, usuarioData);
     } else {
@@ -54,7 +60,11 @@ export default function UsuariosPage({ userPermissions }) {
     }
     setShowForm(false);
     setEditingUsuario(null);
-    loadAll();
+    await loadAll();
+    toast.success('Configuração de acesso salva.');
+    } catch (error) {
+      toast.error(error.message || 'Não foi possível salvar a configuração.');
+    }
   };
 
   const handleEdit = (usuario) => {
@@ -64,14 +74,22 @@ export default function UsuariosPage({ userPermissions }) {
 
   const handleDelete = async (usuario) => {
     if (!confirm(`Excluir configuração de acesso de "${usuario.nome}"? Isso não remove o acesso Google do usuário.`)) return;
-    await Usuario.delete(usuario.id);
-    toast.success("Registro removido");
-    loadAll();
+    try {
+      await Usuario.delete(usuario.id);
+      toast.success("Registro removido");
+      await loadAll();
+    } catch (error) {
+      toast.error(error.message || 'Não foi possível remover o registro.');
+    }
   };
 
   const handleConvidar = async (email) => {
-    await base44.users.inviteUser(email, "user");
-    toast.success(`Convite enviado para ${email}`);
+    try {
+      await base44.users.inviteUser(email, "user");
+      toast.success(`Convite enviado para ${email}`);
+    } catch (error) {
+      toast.error(error.message || 'Não foi possível enviar o convite.');
+    }
   };
 
   // Detectar duplicatas no Usuario por email
