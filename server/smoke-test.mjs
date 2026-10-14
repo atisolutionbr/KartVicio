@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {expectedAfterMigration} from './migration-expected.mjs';
 import { matches, aggregateRows, pageRows } from './query.mjs';
 const access=fs.readFileSync('private-data/local-access.txt','utf8');
 const email=/Email: (.+)/.exec(access)[1], password=/Senha: (.+)/.exec(access)[1];
@@ -13,7 +14,7 @@ async function call(entity,action,body) {
 }
 let total=0;
 for(const filename of fs.readdirSync('private-data').filter(f=>f.endsWith('.json')&&fs.existsSync('base44/entities/'+f.slice(0,-5)+'.jsonc'))) {
- const entity=filename.slice(0,-5),source=JSON.parse(fs.readFileSync('private-data/'+filename));
+ const entity=filename.slice(0,-5),source=expectedAfterMigration(entity,JSON.parse(fs.readFileSync('private-data/'+filename)));
  const rows=await call(entity,'list',{legacy:true});
  assert.deepEqual(rows.sort((a,b)=>a.id.localeCompare(b.id)),source.sort((a,b)=>a.id.localeCompare(b.id)),entity+' diverge da origem');total+=rows.length;
 }

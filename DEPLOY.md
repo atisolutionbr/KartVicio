@@ -29,8 +29,9 @@ Não substituir o arquivo ativo pelo modelo HTTP após emitir o certificado.
 O PWA instalado usa escala de 70%, com convite nativo em navegadores compatíveis
 e instrução para Adicionar à Tela de Início no iOS. Requer internet para dados.
 
-Pendências externas: GOOGLE_CLIENT_ID/SECRET e MICROSOFT_CLIENT_ID/SECRET ainda
-não configurados. As URLs de retorno em produção são:
+Credenciais Google configuradas fora do Git. A liberação do público no Google
+Cloud e o teste completo OAuth ainda precisam ser concluídos. Microsoft continua
+sem credenciais. As URLs de retorno em produção são:
 - https://kartvicio.atisolution.com.br/api/auth/google/callback
 - https://kartvicio.atisolution.com.br/api/auth/microsoft/callback
 
@@ -41,3 +42,10 @@ Consulte OAUTH.md para o vínculo inicial de contas Microsoft.
 Validação somente leitura do domínio: node server/verify-production.mjs.
 Esse script usa a credencial local em private-data e compara a origem; alterações
 legítimas feitas posteriormente em produção podem causar divergência.
+
+Em 13/10/2026, a senha administrativa foi corrigida para o valor exato solicitado
+pelo proprietário, sem os três pontos da mensagem inicial. Foram arquivados 106
+registros duplicados de Usuario, mantendo 18 e-mails únicos e a permissão efetiva
+anterior de cada e-mail. A cópia recuperável está em kartvicio.usuario_dedup_backup.
+O banco contém agora 722 registros operacionais, com o snapshot original intacto.
+O índice usuario_email_unique e a validação no servidor impedem novas duplicatas.

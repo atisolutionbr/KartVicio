@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {expectedAfterMigration} from './migration-expected.mjs';
 const base='https://kartvicio.atisolution.com.br';
 const access=fs.readFileSync('private-data/local-access.txt','utf8');
 const email=/Email: (.+)/.exec(access)[1].trim(), password=/Senha: (.+)/.exec(access)[1].trim();
@@ -10,7 +11,7 @@ const cookie=setCookie.split(';')[0];
 try {
  let total=0;
  for(const file of fs.readdirSync('private-data').filter(f=>f.endsWith('.json')&&fs.existsSync('base44/entities/'+f.slice(0,-5)+'.jsonc'))){
-  const expected=JSON.parse(fs.readFileSync('private-data/'+file));
+  const expected=expectedAfterMigration(file.slice(0,-5),JSON.parse(fs.readFileSync('private-data/'+file)));
   const r=await fetch(base+'/api/entities/'+file.slice(0,-5)+'/list',{method:'POST',headers:{'Content-Type':'application/json',cookie,Origin:base},body:JSON.stringify({legacy:true})});assert.equal(r.status,200);
   const actual=await r.json();const sort=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));assert.deepEqual(sort(actual),sort(expected));total+=actual.length;
  }

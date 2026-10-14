@@ -122,6 +122,10 @@ app.post('/api/entities/:entity/:action',async(req,res)=>{
       const defaults=Object.fromEntries(Object.entries(schemas[entity].properties).filter(([,s])=>'default' in s).map(([k,s])=>[k,s.default]));
       const now=new Date().toISOString();
       const row={...defaults,...old,...data,id:old?.id || crypto.randomUUID(),created_date:old?.created_date || now,created_by:old?.created_by || req.user.email,updated_date:now};
+      if(entity==='Usuario') {
+        row.email=String(row.email||'').trim().toLowerCase();
+        if(rows.some(r=>r.id!==row.id&&String(r.email||'').trim().toLowerCase()===row.email))throw Object.assign(new Error('Já existe um usuário com este e-mail.'),{status:409});
+      }
       assertWrite(req,entity,row);
       for(const key of schemas[entity].required||[])if(row[key]===undefined||row[key]===null||row[key]==='')throw new Error(`Campo obrigatório: ${key}`);
       for(const [key,schema] of Object.entries(schemas[entity].properties)) {
