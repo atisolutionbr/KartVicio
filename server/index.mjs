@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { matches, pageRows, aggregateRows } from './query.mjs';
 import { installOAuth } from './oauth.mjs';
 import { origin, secureCookies, database } from './config.mjs';
+import { installInvitations } from './invitations.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pool = new pg.Pool(database);
 await pool.query(`CREATE SCHEMA IF NOT EXISTS kartvicio;
@@ -81,6 +82,7 @@ app.use('/api',async(req,res,next)=>{
   next();
 });
 app.get('/api/auth/me',(req,res)=>res.json(req.user));
+await installInvitations(app,pool);
 const permitted=(req,entity,row)=>{
   const p=req.user.permissions;
   if(p.permissao==='admin')return true;
@@ -124,9 +126,9 @@ app.post('/api/entities/:entity/:action',async(req,res)=>{
       const row={...defaults,...old,...data,id:old?.id || crypto.randomUUID(),created_date:old?.created_date || now,created_by:old?.created_by || req.user.email,updated_date:now};
       if(entity==='Usuario') {
         row.email=String(row.email||'').trim().toLowerCase();
-        if(rows.some(r=>r.id!==row.id&&String(r.email||'').trim().toLowerCase()===row.email))throw Object.assign(new Error('Já existe um usuário com este e-mail.'),{status:409});
       }
       assertWrite(req,entity,row);
+      if(entity==='Usuario'&&rows.some(r=>r.id!==row.id&&String(r.email||'').trim().toLowerCase()===row.email))throw Object.assign(new Error('Já existe um usuário com este e-mail.'),{status:409});
       for(const key of schemas[entity].required||[])if(row[key]===undefined||row[key]===null||row[key]==='')throw new Error(`Campo obrigatório: ${key}`);
       for(const [key,schema] of Object.entries(schemas[entity].properties)) {
         if(row[key]==null)continue;

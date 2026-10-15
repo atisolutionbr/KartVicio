@@ -18,7 +18,7 @@ if (-not (Test-Path -LiteralPath 'dist/index.html')) {
 }
 $nodeExe = (Get-Command node).Source
 Start-Process -FilePath $nodeExe -ArgumentList 'server/index.mjs' -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $PSScriptRoot 'private-data/server.log') -RedirectStandardError (Join-Path $PSScriptRoot 'private-data/server-error.log')
-for ($attempt = 0; $attempt -lt 20; $attempt++) {
+for ($attempt = 0; $attempt -lt 60; $attempt++) {
     try {
         $response = Invoke-WebRequest -Uri 'http://localhost:6300/' -TimeoutSec 2
         if ($response.Content -match 'KartVicio') {

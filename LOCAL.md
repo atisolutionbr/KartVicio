@@ -19,3 +19,14 @@ Teste de integridade inicial: `node server/smoke-test.mjs`. Compara os registros
 O administrador local é jonatha.soares@atisolution.com.br, com a senha exata corrigida pelo proprietário. Google está publicado e testado na VPS; consulte DEPLOY.md. Microsoft ainda depende de credenciais. Os 124 registros originais de Usuario permanecem no snapshot da importação. Após a limpeza autorizada, há 18 usuários únicos no banco operacional e 106 duplicados recuperáveis em kartvicio.usuario_dedup_backup. Foram preservados status, permissões efetivas e campeonatos. Nenhuma senha dos demais usuários foi presumida a partir dos e-mails. O cadastro de autenticação User não pôde ser exportado pelo endpoint de entidades. Envio de convites por e-mail e MCP da plataforma ainda não estão configurados.
 
 Código publicado no GitHub e aplicação publicada na VPS em 13/10/2026. Consulte DEPLOY.md. Não publicar o banco, exportações ou `.env` no Git. Os bancos local e de produção são independentes após a migração.
+
+## Recuperação do Docker
+
+Em 14/10/2026, sockets temporários inválidos impediam a inicialização do Docker.
+As pastas contendo apenas esses sockets foram preservadas em
+`C:\Users\jonat\AppData\Local\docker-secrets-engine-backup-20261014` e
+`C:\Users\jonat\AppData\Local\Docker\run-backup-20261014`.
+O Docker recriou os canais, e o PostgreSQL local voltou a responder.
+Os volumes e o snapshot dos dados não foram alterados durante essa recuperação.
+
+Convites SMTP estão implementados e aguardam credenciais; consulte SMTP.md.

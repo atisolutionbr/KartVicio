@@ -27,4 +27,4 @@ const auth={me:()=>request('/api/auth/me',undefined,'GET'),login:()=>{window.loc
  logout:async()=>{await request('/api/auth/logout',{});window.location.href='/login';}};
 export const base44={entities,auth,integrations:{Core:{UploadPublicFile:async({file})=>{
  const form=new FormData();form.append('file',file);const r=await fetch('/api/upload',{method:'POST',body:form});const result=await r.json();if(!r.ok)throw new Error(result.message);return result;
-}}},users:{inviteUser:async()=>{throw new Error('Configure o envio de e-mail local para enviar convites.');}}};
+}}},users:{inviteUser:email=>request('/api/users/invite',{email})}};

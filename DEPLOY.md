@@ -50,3 +50,8 @@ registros duplicados de Usuario, mantendo 18 e-mails únicos e a permissão efet
 anterior de cada e-mail. A cópia recuperável está em kartvicio.usuario_dedup_backup.
 O banco contém agora 722 registros operacionais, com o snapshot original intacto.
 O índice usuario_email_unique e a validação no servidor impedem novas duplicatas.
+
+Convites SMTP implementados com TLS, restrição administrativa, validação de usuário
+ativo, intervalo de cinco minutos e registro de status. Permanecem desativados até
+configurar as credenciais indicadas em SMTP.md. Testes com transporte simulado
+passaram sem envio real de mensagens.

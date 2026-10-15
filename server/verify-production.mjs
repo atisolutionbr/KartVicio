@@ -19,6 +19,8 @@ try {
  for(const icon of manifest.icons)assert.equal((await fetch(base+icon.src)).status,200);
  assert.equal((await fetch(base+'/sw.js')).status,200);
  assert.equal((await fetch(base+'/media/kartvicio-logo.png')).status,200);
+ const invitations=await fetch(base+'/api/users/invitations/status',{headers:{cookie}});
+ assert.equal(invitations.status,200);assert.equal(typeof (await invitations.json()).configured,'boolean');
  console.log(`HTTPS, login administrador, cookie seguro, ${total} registros, manifesto, ícones e service worker: OK.`);
  console.log('Provedores OAuth:',await(await fetch(base+'/api/auth/providers')).json());
 } finally {await fetch(base+'/api/auth/logout',{method:'POST',headers:{cookie,Origin:base}});}

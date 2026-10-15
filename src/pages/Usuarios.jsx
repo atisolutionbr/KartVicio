@@ -20,6 +20,14 @@ export default function UsuariosPage({ userPermissions }) {
   const [editingUsuario, setEditingUsuario] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [invitationsConfigured, setInvitationsConfigured] = useState(false);
+  const [invitingEmail, setInvitingEmail] = useState(null);
+
+  useEffect(() => {
+    if(userPermissions?.permissao !== 'admin')return;
+    import('@/api/base44Client').then(({request})=>request('/api/users/invitations/status',undefined,'GET'))
+      .then(result=>setInvitationsConfigured(result.configured)).catch(()=>setInvitationsConfigured(false));
+  }, [userPermissions?.permissao]);
 
   useEffect(() => {
     loadAll();
@@ -84,11 +92,15 @@ export default function UsuariosPage({ userPermissions }) {
   };
 
   const handleConvidar = async (email) => {
+    if(invitingEmail)return;
+    setInvitingEmail(email);
     try {
       await base44.users.inviteUser(email, "user");
       toast.success(`Convite enviado para ${email}`);
     } catch (error) {
       toast.error(error.message || 'Não foi possível enviar o convite.');
+    } finally {
+      setInvitingEmail(null);
     }
   };
 
@@ -326,6 +338,8 @@ export default function UsuariosPage({ userPermissions }) {
                               variant="outline"
                               size="sm"
                               onClick={() => handleConvidar(u.email)}
+                              disabled={!invitationsConfigured || Boolean(invitingEmail) || u.usuarioRecord?.ativo===false}
+                              title={invitationsConfigured?'Enviar instruções de acesso':'O envio de convites ainda não foi ativado.'}
                               className="text-blue-600 border-blue-300 hover:bg-blue-50 px-1.5 sm:px-3 text-xs"
                             >
                               <Mail className="w-3 h-3 sm:mr-1" />
@@ -403,6 +417,11 @@ export default function UsuariosPage({ userPermissions }) {
                         <div className="flex items-center gap-2 justify-center">
                           <Button variant="outline" size="sm" onClick={() => handleEdit(usuario)}>
                             Editar
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleConvidar(usuario.email)}
+                            disabled={!invitationsConfigured || Boolean(invitingEmail) || usuario.ativo===false}
+                            title={invitationsConfigured?'Enviar instruções de acesso':'O envio de convites ainda não foi ativado.'}>
+                            <Mail className="w-3 h-3 mr-1" />{invitingEmail===usuario.email?'Enviando…':'Convidar'}
                           </Button>
                           <Button
                             variant="destructive"
