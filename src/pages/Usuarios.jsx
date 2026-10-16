@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, UserCheck, Search, Shield, Mail, Trash2, AlertTriangle, Users } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { base44, request } from "@/api/base44Client";
 import { toast } from "sonner";
 import UsuarioForm from "../components/usuarios/UsuarioForm";
 
@@ -25,7 +25,7 @@ export default function UsuariosPage({ userPermissions }) {
 
   useEffect(() => {
     if(userPermissions?.permissao !== 'admin')return;
-    import('@/api/base44Client').then(({request})=>request('/api/users/invitations/status',undefined,'GET'))
+    request('/api/users/invitations/status',undefined,'GET')
       .then(result=>setInvitationsConfigured(result.configured)).catch(()=>setInvitationsConfigured(false));
   }, [userPermissions?.permissao]);
 

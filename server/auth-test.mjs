@@ -12,6 +12,9 @@ try {
  let response=await fetch(base+'/api/auth/me',{headers});assert.equal(response.status,200);assert.equal((await response.json()).permissions.permissao,'visualizador');
  response=await fetch(base+'/api/entities/Campeonato/list',{method:'POST',headers,body:JSON.stringify({legacy:true})});assert.deepEqual(await response.json(),[]);
  response=await fetch(base+'/api/entities/Usuario/create',{method:'POST',headers,body:JSON.stringify({data:{nome:'Teste',email,permissao:'admin'}})});assert.equal(response.status,403);
+ await db.query("UPDATE kartvicio.records SET data=jsonb_set(data,'{permissao}','\"admin\"') WHERE entity='Usuario' AND id=$1",[id]);
+ response=await fetch(base+'/api/auth/me',{headers});assert.equal((await response.json()).permissions.permissao,'visualizador','legacy admin flag must not grant administrator');
+ response=await fetch(base+'/api/entities/Usuario/create',{method:'POST',headers,body:JSON.stringify({data:{nome:'Teste',email,permissao:'admin'}})});assert.equal(response.status,403);
  await db.query("UPDATE kartvicio.records SET data=jsonb_set(data,'{ativo}','false') WHERE entity='Usuario' AND id=$1",[id]);
  response=await fetch(base+'/api/auth/me',{headers});assert.equal(response.status,403);
  response=await fetch(base+'/api/auth/google/callback?state=invalid&code=invalid',{redirect:'manual'});assert.equal(response.status,302);assert.equal(response.headers.get('location'),'/login?auth_error=invalid');

@@ -52,10 +52,11 @@ export default function CampeonatoPublicoPage({ userPermissions }) {
   const loadVersion = React.useRef(0);
 
   const carregarCatalogo = useCallback(async () => {
-    const list = await Campeonato.list('-ano');
+    const [list, nomes] = await Promise.all([
+      Campeonato.list('-ano'), valoresDistintos('Piloto', { ativo: true }, 'nome'),
+    ]);
     const acessiveis = filtrarCampeonatosAcessiveis(list, userPermissions);
     const ids = acessiveis.map(c => c.id);
-    const nomes = await valoresDistintos('Piloto', { ativo: true }, 'nome');
     const [statsEtapas, statsPilotos] = await Promise.all([
       Etapa.aggregate({ query: { campeonato_id: { $in: ids } }, groupBy: ['campeonato_id', 'finalizada'], limit: 1000 }),
       base44.entities.InscricaoPiloto.aggregate({ query: { campeonato_id: { $in: ids }, ativo: true, piloto_nome: { $in: nomes } }, groupBy: 'campeonato_id', countDistinct: 'piloto_nome', limit: 1000 }),

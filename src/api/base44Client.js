@@ -1,4 +1,6 @@
 import assetMap from './assets-map.json';
+import {createPendingReads} from './pending-reads.mjs';
+const pendingReads=createPendingReads();
 function localAssets(value) {
  if(typeof value==='string')return assetMap[value] || value;
  if(Array.isArray(value))return value.map(localAssets);
@@ -6,8 +8,12 @@ function localAssets(value) {
  return value;
 }
 export async function request(url,data,method='POST') {
+ const execute=async()=>{
  const r=await fetch(url,{method,credentials:'same-origin',...(data!==undefined?{headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}:{})});
  const result=await r.json();if(!r.ok)throw Object.assign(new Error(result.message||'Erro na operação'),{status:r.status});return localAssets(result);
+ };
+ return method==='POST' && /^\/api\/entities\/[^/]+\/(list|filter|get|count|aggregate)$/.test(url)
+  ? pendingReads(JSON.stringify([url,data]),execute) : execute();
 }
 const listeners=new Map();let stream;
 function subscribe(entity,callback){if(!listeners.has(entity))listeners.set(entity,new Set());listeners.get(entity).add(callback);

@@ -12,6 +12,7 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 
+const INSTALLED_KEY = 'kartvicio:pwa-installed';
 const DISMISS_KEY = 'kartvicio:pwa-install-dismissed';
 const DISMISS_TTL = 1000 * 60 * 60 * 24 * 30; // 30 dias
 
@@ -29,17 +30,22 @@ export default function InstallPwaPrompt() {
   const [iosHint, setIosHint] = useState(false);
 
   useEffect(() => {
-    if (isStandalone()) return;
+    if (isStandalone()) {
+      try { localStorage.setItem(INSTALLED_KEY, '1'); } catch (_) {}
+      return;
+    }
 
     let dismissedAt = 0;
     try {
       dismissedAt = Number(sessionStorage.getItem(DISMISS_KEY) || localStorage.getItem(DISMISS_KEY) || 0);
     } catch (_) {}
-    if (dismissedAt && Date.now() - dismissedAt < DISMISS_TTL) return;
+    const dismissed = dismissedAt && Date.now() - dismissedAt < DISMISS_TTL;
+    let installed = false;
+    try { installed = localStorage.getItem(INSTALLED_KEY) === '1'; } catch (_) {}
 
     const onBeforeInstall = (event) => {
       event.preventDefault();
-      if (!deferred) {
+      if (!dismissed && !isStandalone()) {
         setDeferred(event);
         setOpen(true);
       }
@@ -48,7 +54,7 @@ export default function InstallPwaPrompt() {
     const onInstalled = () => {
       setDeferred(null);
       setOpen(false);
-      try { sessionStorage.removeItem(DISMISS_KEY); localStorage.removeItem(DISMISS_KEY); } catch (_) {}
+      try { localStorage.setItem(INSTALLED_KEY, '1'); sessionStorage.removeItem(DISMISS_KEY); localStorage.removeItem(DISMISS_KEY); } catch (_) {}
     };
 
     window.addEventListener('beforeinstallprompt', onBeforeInstall);
@@ -59,7 +65,7 @@ export default function InstallPwaPrompt() {
     const isIos = /iphone|ipad|ipod/i.test(ua) || (/\sMac/i.test(ua) && navigator.maxTouchPoints > 1);
     if (isIos) {
       const timer = setTimeout(() => {
-        if (!isStandalone() && !dismissedAt) {
+        if (!isStandalone() && !dismissed && !installed) {
           setIosHint(true);
           setOpen(true);
         }

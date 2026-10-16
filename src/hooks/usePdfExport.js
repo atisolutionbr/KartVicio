@@ -1,6 +1,4 @@
 import { useCallback, useState } from "react";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 const RENDER_WIDTH = 1400;
 const LOGO_URL = "/media/621866bf89891ec2.jpg";
@@ -62,6 +60,7 @@ export function usePdfExport() {
   const exportToPdf = useCallback(async ({ elementId, filename }) => {
     setExporting(true);
     try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([import('jspdf'), import('html2canvas')]);
       const element = document.getElementById(elementId);
       if (!element) throw new Error("Elemento não encontrado: " + elementId);
 

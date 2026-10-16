@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ResultadoEtapa, Etapa } from "@/entities/all";
 import { carregarDadosRanking, recalcularResultados, computarPontos } from '@/utils/rankingCalc';
 import { carregarNomesVinculados } from '@/components/pilotos/vinculosPilotos';
-import { base44 } from "@/api/base44Client";
+import { base44, request } from "@/api/base44Client";
 import CampeonatoSelector from "@/components/campeonatos/CampeonatoSelector";
 import SemAcessoCard from "@/components/SemAcessoCard";
 import { filtrarCampeonatosAcessiveis, usuarioSemAcesso } from "@/utils/campeonatoAccess";
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import ResultadoForm from "../components/resultados/ResultadoForm";
+import ImportarDocumento from '../components/resultados/ImportarDocumento';
 import ImportarCSV from "../components/resultados/ImportarCSV";
 import PdfEtapa from "../components/resultados/PdfEtapa";
 import HistoricoAlteracoes from "../components/resultados/HistoricoAlteracoes";
@@ -52,6 +53,11 @@ export default function ResultadosPage({ userPermissions }) {
   const submitLock = React.useRef(false);
   const loadVersion = React.useRef(0);
   const [showForm, setShowForm] = useState(false);
+  const [resultPage,setResultPage]=useState(0);
+  const [showDocument,setShowDocument]=useState(false);
+  const [deleteStage,setDeleteStage]=useState('');
+  const [stageBusy,setStageBusy]=useState(false);
+  const [stageError,setStageError]=useState('');
   const [showImportCSV, setShowImportCSV] = useState(false);
   const [showPdfEtapa, setShowPdfEtapa] = useState(false);
   const [editingResultado, setEditingResultado] = useState(null);
@@ -63,6 +69,7 @@ export default function ResultadosPage({ userPermissions }) {
   const [recalcEtapaLoading, setRecalcEtapaLoading] = useState(false);
   const [buscaPiloto, setBuscaPiloto] = useState("");
 
+  useEffect(()=>setResultPage(0),[campeonatoId,filtroEtapa,filtroCategoria,anoFiltro,buscaPiloto]);
   useEffect(() => {
     base44.auth.me().then(u => setUserInfo(u)).catch(() => {});
     Campeonato.list("-ano").then(list => {
@@ -307,39 +314,9 @@ export default function ResultadosPage({ userPermissions }) {
   };
 
   const handleImportCSV = async (rows) => {
-    // Usa a etapa do filtro atual ou a primeira etapa aberta
-    const etapaTarget = filtroEtapa !== "all"
-      ? etapas.find(e => e.id === filtroEtapa)
-      : etapasAbertas[0];
-
-    if (!etapaTarget) {
-      alert("Selecione uma etapa específica no filtro antes de importar.");
-      return;
-    }
-
-    const dadosRanking = await carregarDadosRanking(campeonatoId);
-    for (const row of rows) {
-      const { items } = await ResultadoEtapa.filter({ campeonato_id: campeonatoId, etapa_id: etapaTarget.id, piloto_nome: row.piloto_nome }, { limit: 1 });
-      const existingPiloto = items[0];
-      if (existingPiloto) continue; // Ignora duplicados
-
-      const calculado = computarPontos({ ...row, etapa_id: etapaTarget.id, tipos_ponto_aplicados: [] }, etapaTarget, dadosRanking.tabelaMap, dadosRanking.penalidadesPorChave);
-
-      await ResultadoEtapa.create({
-        campeonato_id: campeonatoId,
-        ano: anoFiltro,
-        etapa_id: etapaTarget.id,
-        piloto_nome: row.piloto_nome,
-        posicao: row.posicao,
-        categoria: etapaTarget.categoria || '',
-        ...calculado,
-        tipos_ponto_aplicados: [],
-        descartado: false
-      });
-    }
-
-    setShowImportCSV(false);
-    loadData();
+    if(filtroEtapa==='all'){alert('Selecione uma etapa específica no filtro antes de importar.');return;}
+    try { await request('/api/results/stage/import',{etapa_id:filtroEtapa,rows});setShowImportCSV(false);await loadData(); }
+    catch(error){alert(error.message);}
   };
   
   const canEdit = userPermissions?.permissao === 'admin';
@@ -429,6 +406,8 @@ export default function ResultadosPage({ userPermissions }) {
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <CampeonatoSelector campeonatos={campeonatos} value={campeonatoId} onChange={(v) => { setCampeonatoId(v); setFiltroEtapa("all"); }} />
+          {canCreate && campeonatoId && <Button variant="outline" onClick={()=>setShowDocument(v=>!v)}>Importar imagem / PDF</Button>}
+          {canEdit && filtroEtapa!=='all' && <Button variant="destructive" onClick={()=>{setDeleteStage(filtroEtapa);setStageError('');}}>Excluir resultados da etapa</Button>}
           {campeonatoId && (
             <Button
               variant="outline"
@@ -564,6 +543,13 @@ export default function ResultadosPage({ userPermissions }) {
         />
       )}
 
+      {resultadosFiltrados.length>30 && <div className="flex items-center gap-3"><Button variant="outline" disabled={resultPage===0} onClick={()=>setResultPage(p=>p-1)}>Anterior</Button><span>Página {resultPage+1} de {Math.ceil(resultadosFiltrados.length/30)}</span><Button variant="outline" disabled={(resultPage+1)*30>=resultadosFiltrados.length} onClick={()=>setResultPage(p=>p+1)}>Próxima</Button></div>}
+      {showDocument && canCreate && <ImportarDocumento key={campeonatoId} etapas={etapas} pilotos={pilotos} onComplete={()=>{setShowDocument(false);loadData();}} onCancel={()=>setShowDocument(false)}/>}
+      <AlertDialog open={Boolean(deleteStage)} onOpenChange={open=>{if(!open&&!stageBusy)setDeleteStage('');}}>
+       <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Excluir todos os resultados desta etapa?</AlertDialogTitle><AlertDialogDescription>Etapa {etapas.find(e=>e.id===deleteStage)?.numero_etapa}: todos os resultados e penalidades serão retirados do ranking. A etapa ficará aberta e não publicada. Pilotos e demais etapas serão mantidos.</AlertDialogDescription></AlertDialogHeader>
+       {stageError&&<p role="alert" className="text-red-700">{stageError}</p>}
+       <AlertDialogFooter><AlertDialogCancel disabled={stageBusy}>Cancelar</AlertDialogCancel><Button variant="destructive" disabled={stageBusy} onClick={async()=>{setStageBusy(true);setStageError('');try{await request('/api/results/stage/delete',{etapa_id:deleteStage,confirm:deleteStage});setDeleteStage('');await loadData();}catch(e){setStageError(e.message);}finally{setStageBusy(false);}}}>{stageBusy?'Excluindo…':'Confirmar exclusão completa'}</Button></AlertDialogFooter></AlertDialogContent>
+      </AlertDialog>
       {showImportCSV && canCreate && (
         <ImportarCSV
           pilotos={pilotos}
@@ -641,7 +627,7 @@ export default function ResultadosPage({ userPermissions }) {
           {/* Mobile: cards */}
           {resultadosFiltrados.length > 0 && (
             <div className="space-y-3 p-4 md:hidden">
-              {resultadosFiltrados.map(res => {
+              {resultadosFiltrados.slice(resultPage*30,(resultPage+1)*30).map(res => {
                 const etapa = etapas.find(e => e.id === res.etapa_id);
                 return (
                   <ResultadoRowCard
@@ -677,7 +663,7 @@ export default function ResultadosPage({ userPermissions }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {resultadosFiltrados.map((res, index) => {
+                {resultadosFiltrados.slice(resultPage*30,(resultPage+1)*30).map((res, index) => {
                    const etapa = etapas.find(e => e.id === res.etapa_id);
                    const temPenalidade = (res.pontos_penalidade || 0) > 0;
                    const rowClass = res.descartado

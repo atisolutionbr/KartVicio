@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import pg from 'pg';
 import multer from 'multer';
 import fs from 'node:fs';
@@ -6,6 +7,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { matches, pageRows, aggregateRows } from './query.mjs';
+import {installStageResults} from './stage-results.mjs';
 import { installOAuth } from './oauth.mjs';
 import { origin, secureCookies, database } from './config.mjs';
 import { installInvitations } from './invitations.mjs';
@@ -39,6 +41,8 @@ if (!(await pool.query('SELECT 1 FROM kartvicio.accounts WHERE email=$1',[adminE
 const schemas = Object.fromEntries(fs.readdirSync(path.join(root,'base44/entities')).filter(f=>f.endsWith('.jsonc')).map(f=>[f.slice(0,-6), JSON.parse(fs.readFileSync(path.join(root,'base44/entities',f),'utf8'))]));
 const app = express();
 app.disable('x-powered-by');
+app.use(compression({filter:(req,res)=>req.path!=='/api/events' && compression.filter(req,res)}));
+app.use('/api',(req,res,next)=>{res.set('Cache-Control','private, no-store');next();});
 if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
 app.use(express.json({limit:'2mb'}));
 app.use((req,res,next)=>{
@@ -51,6 +55,8 @@ const read = async (entity, db=pool) => (await db.query('SELECT data FROM kartvi
 const cookieToken = req => /(?:^|;\s*)kv_session=([^;]+)/.exec(req.headers.cookie || '')?.[1];
 const attempts = new Map();
 await installOAuth(app,pool,adminEmail);
+// Expire sessions created before the identity binding correction, once per database.
+await pool.query(`WITH applied AS (INSERT INTO kartvicio.migrations(name) VALUES('identity-isolation-v2') ON CONFLICT DO NOTHING RETURNING name) DELETE FROM kartvicio.sessions WHERE EXISTS(SELECT 1 FROM applied)`);
 app.post('/api/auth/login',async(req,res)=>{
   const key=req.ip, attempt=attempts.get(key);
   if(attempt && attempt.count>=15 && Date.now()-attempt.time<900000) return res.status(429).json({message:'Aguarde alguns minutos para tentar novamente.'});
@@ -69,6 +75,7 @@ app.post('/api/auth/login',async(req,res)=>{
 });
 app.post('/api/auth/logout',async(req,res)=>{
   await pool.query('DELETE FROM kartvicio.sessions WHERE token_hash=$1',[hash(cookieToken(req)||'')]);
+  for(const client of subscribers)if(cookieToken(client.req)===cookieToken(req))client.res.end();
   res.clearCookie('kv_session',{path:'/'}).json({ok:true});
 });
 app.use('/api',async(req,res,next)=>{
@@ -76,7 +83,9 @@ app.use('/api',async(req,res,next)=>{
   if(!account) return res.status(401).json({message:'Autenticação necessária'});
   const configs=(await read('Usuario')).filter(u=>u.email?.trim().toLowerCase()===account.email);
   if(account.email!==adminEmail&&(!configs.length||configs.some(p=>p.ativo===false)))return res.status(403).json({message:'Usuário sem acesso ou inativo'});
-  const permission=account.email===adminEmail ? {permissao:'admin',ativo:true,campeonatos_ids:[]} : configs[0] || {permissao:'visualizador',ativo:true,campeonatos_ids:[]};
+  const permission=account.email===adminEmail ? {permissao:'admin',ativo:true,campeonatos_ids:[]} : {...configs[0]};
+  // Only the configured owner can administer accounts. Legacy admin flags do not grant it.
+  if(account.email!==adminEmail && permission.permissao==='admin')permission.permissao='visualizador';
   if(permission.ativo===false) return res.status(403).json({message:'Usuário inativo'});
   req.user={...account,id:account.email,role:permission.permissao==='admin'?'admin':'user',permissions:permission};
   next();
@@ -96,6 +105,7 @@ const assertWrite=(req,entity,row)=>{
   if(role!=='admin' && !(role==='operador' && ['ResultadoEtapa','Penalidade','LogAlteracao'].includes(entity))) throw Object.assign(new Error('Sem permissão para alterar este cadastro'),{status:403});
   if(!permitted(req,entity,row) && entity!=='LogAlteracao') throw Object.assign(new Error('Campeonato sem acesso'),{status:403});
 };
+installStageResults(app,pool,{assertWrite,broadcast:etapa=>{for(const entity of ['ResultadoEtapa','Penalidade','Etapa'])for(const client of subscribers)if(permitted(client.req,entity,etapa))client.res.write(`data: ${JSON.stringify({entity,type:'update'})}\n\n`);}});
 app.post('/api/entities/:entity/:action',async(req,res)=>{
   const {entity,action}=req.params, body=req.body;
   if(entity==='User' && action==='list') {
@@ -127,7 +137,13 @@ app.post('/api/entities/:entity/:action',async(req,res)=>{
       if(entity==='Usuario') {
         row.email=String(row.email||'').trim().toLowerCase();
       }
+      if(['ResultadoEtapa','Penalidade'].includes(entity)) {
+        const stage=(await db.query("SELECT data FROM kartvicio.records WHERE entity='Etapa' AND id=$1",[row.etapa_id])).rows[0]?.data;
+        if(!stage || stage.campeonato_id!==row.campeonato_id || (entity==='ResultadoEtapa' && stage.ano!==row.ano))throw Object.assign(new Error('Etapa, campeonato e ano inconsistentes.'),{status:400});
+        if(entity==='ResultadoEtapa' && stage.finalizada && (!old || Object.keys(data).some(key=>!['id','descartado','pontos','pontos_melhor_volta','pontos_penalidade','pontos_tipo_extra','pontos_totais'].includes(key))))throw Object.assign(new Error('Reabra a etapa para alterar resultados.'),{status:409});
+      }
       assertWrite(req,entity,row);
+      if(entity==='Usuario' && row.permissao==='admin' && row.email!==adminEmail)throw Object.assign(new Error('Somente o administrador principal pode ter este perfil.'),{status:400});
       if(entity==='Usuario'&&rows.some(r=>r.id!==row.id&&String(r.email||'').trim().toLowerCase()===row.email))throw Object.assign(new Error('Já existe um usuário com este e-mail.'),{status:409});
       for(const key of schemas[entity].required||[])if(row[key]===undefined||row[key]===null||row[key]==='')throw new Error(`Campo obrigatório: ${key}`);
       for(const [key,schema] of Object.entries(schemas[entity].properties)) {
@@ -152,14 +168,17 @@ app.post('/api/entities/:entity/:action',async(req,res)=>{
       for(const data of body.records) {const old=action==='upsert'?rows.find(r=>body.key.every(k=>r[k]===data[k])):null;result.push(await save(data,old?.id));}
     } else throw new Error('Operação não suportada');
     await db.query('COMMIT');
+    if(entity==='Usuario')for(const client of subscribers)client.res.end();
     for(const event of events)for(const client of subscribers)if(permitted(client.req,entity,event.data)) client.res.write(`data: ${JSON.stringify({entity,...event})}\n\n`);
     res.json(result);
   }catch(error){await db.query('ROLLBACK');throw error;}finally{db.release();}
 });
 const subscribers=new Set();
 app.get('/api/events',(req,res)=>{
-  res.set({'Content-Type':'text/event-stream','Cache-Control':'no-cache','Connection':'keep-alive'});res.flushHeaders();
-  const client={req,res};subscribers.add(client);const timer=setInterval(()=>res.write(': keepalive\n\n'),25000);
+  res.set({'Content-Type':'text/event-stream','Cache-Control':'private, no-store','Connection':'keep-alive'});res.flushHeaders();
+  const client={req,res};subscribers.add(client);const timer=setInterval(async()=>{
+    try { const active=await pool.query('SELECT 1 FROM kartvicio.sessions WHERE token_hash=$1 AND expires>now()',[hash(cookieToken(req)||'')]); if(!active.rowCount)return res.end(); res.write(': keepalive\n\n'); } catch { res.end(); }
+  },25000);
   req.on('close',()=>{clearInterval(timer);subscribers.delete(client);});
 });
 fs.mkdirSync(path.join(root,'private-data/uploads'),{recursive:true});
@@ -170,5 +189,9 @@ app.use('/api',(req,res)=>res.status(404).json({message:'Recurso não configurad
 app.use((error,req,res,next)=>{console.error(error.message);res.status(error.status||400).json({message:error.message || 'Erro na operação'});});
 if(process.argv.includes('--dev')) {
   const {createServer}=await import('vite');const vite=await createServer({root,server:{middlewareMode:true},appType:'spa'});app.use(vite.middlewares);
-} else {app.use(express.static(path.join(root,'dist')));app.get('/{*path}',(req,res)=>res.sendFile(path.join(root,'dist/index.html')));}
+} else {
+ app.use('/assets',express.static(path.join(root,'dist/assets'),{immutable:true,maxAge:'1y'}));
+ app.use(express.static(path.join(root,'dist'),{setHeaders:res=>res.setHeader('Cache-Control','no-cache')}));
+ app.get('/{*path}',(req,res)=>{res.set('Cache-Control','no-cache');res.sendFile(path.join(root,'dist/index.html'));});
+}
 app.listen(6300,process.env.BIND_HOST || '127.0.0.1',()=>console.log('KartVicio disponível em '+origin));

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { pagesConfig } from './pages.config'
-import CampeonatoPublico from './pages/CampeonatoPublico';
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -13,10 +13,12 @@ import InstallPwaPrompt from '@/components/pwa/InstallPwaPrompt';
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+const CampeonatoPublico = lazy(() => import('./pages/CampeonatoPublico'));
+const PageLoading = () => <div role="status" className="min-h-48 grid place-items-center text-slate-500">Carregando tela…</div>;
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+  : <Suspense fallback={<PageLoading />}>{children}</Suspense>;
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -74,9 +76,10 @@ const AuthenticatedApp = () => {
 function App() {
 
   return (
-    <AuthProvider>
+    <>
       <PwaViewport />
       <InstallPwaPrompt />
+    <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <AuthenticatedApp />
@@ -84,6 +87,7 @@ function App() {
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>
+    </>
   )
 }
 

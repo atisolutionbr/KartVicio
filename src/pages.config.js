@@ -1,3 +1,4 @@
+import { lazy } from 'react';
 /**
  * pages.config.js - Page routing configuration
  * 
@@ -47,22 +48,22 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Dashboard from './pages/Dashboard';
-import Etapas from './pages/Etapas';
-import Penalidades from './pages/Penalidades';
-import Pilotos from './pages/Pilotos';
-import Pontuacoes from './pages/Pontuacoes';
-import Relatorios from './pages/Relatorios';
-import Resultados from './pages/Resultados';
-import Simulador from './pages/Simulador';
-import TabelaPontos from './pages/TabelaPontos';
-import Usuarios from './pages/Usuarios';
-import Campeonatos from './pages/Campeonatos';
-import CampeonatoDetalhe from './pages/CampeonatoDetalhe';
-import PerfilPiloto from './pages/PerfilPiloto';
-import MigracaoDados from './pages/MigracaoDados';
-import TipoPonto from './pages/TipoPonto';
-import Calendario from './pages/Calendario';
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Etapas = lazy(() => import('./pages/Etapas'));
+const Penalidades = lazy(() => import('./pages/Penalidades'));
+const Pilotos = lazy(() => import('./pages/Pilotos'));
+const Pontuacoes = lazy(() => import('./pages/Pontuacoes'));
+const Relatorios = lazy(() => import('./pages/Relatorios'));
+const Resultados = lazy(() => import('./pages/Resultados'));
+const Simulador = lazy(() => import('./pages/Simulador'));
+const TabelaPontos = lazy(() => import('./pages/TabelaPontos'));
+const Usuarios = lazy(() => import('./pages/Usuarios'));
+const Campeonatos = lazy(() => import('./pages/Campeonatos'));
+const CampeonatoDetalhe = lazy(() => import('./pages/CampeonatoDetalhe'));
+const PerfilPiloto = lazy(() => import('./pages/PerfilPiloto'));
+const MigracaoDados = lazy(() => import('./pages/MigracaoDados'));
+const TipoPonto = lazy(() => import('./pages/TipoPonto'));
+const Calendario = lazy(() => import('./pages/Calendario'));
 import __Layout from './Layout.jsx';
 
 

@@ -121,7 +121,7 @@ export const calcularRankingComDescarte = ({
     const nome = r.piloto_nome;
     const d = descartesPorPiloto[nome];
     const etapasDescartadas = d?.etapasDescartadas || [];
-    if (etapasDescartadas.includes(r.etapa_id)) return;
+
     if (!ranking[nome]) {
       ranking[nome] = {
         piloto: nome,
@@ -136,10 +136,11 @@ export const calcularRankingComDescarte = ({
         faltas: d?.faltas || 0
       };
     }
-    ranking[nome].pontos_totais += r.pontos_totais || 0;
-    ranking[nome].pontos_penalidades += r.pontos_penalidade || 0;
-    ranking[nome].pontos_melhor_volta += r.pontos_melhor_volta || 0;
-    ranking[nome].pontos_tipo_extra += r.pontos_tipo_extra || 0;
+    if (etapasDescartadas.includes(r.etapa_id)) return;
+    ranking[nome].pontos_totais += Number(r.pontos_totais) || 0;
+    ranking[nome].pontos_penalidades += Number(r.pontos_penalidade) || 0;
+    ranking[nome].pontos_melhor_volta += Number(r.pontos_melhor_volta) || 0;
+    ranking[nome].pontos_tipo_extra += Number(r.pontos_tipo_extra) || 0;
     ranking[nome].etapas_disputadas += 1;
   });
 

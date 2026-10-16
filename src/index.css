@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --app-scale: 1;
+    --app-scale: 0.7;
     --app-viewport-width: 100vw;
     --app-viewport-height: 100dvh;
     --app-layout-width: calc(var(--app-viewport-width) / var(--app-scale));

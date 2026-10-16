@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import {createRemoteJWKSet,jwtVerify} from 'jose';
 import {origin,secureCookies} from './config.mjs';
+import {resolveIdentity} from './identity-policy.mjs';
 const digest=v=>crypto.createHash('sha256').update(v).digest('hex');
 const random=()=>crypto.randomBytes(32).toString('base64url');
 export async function installOAuth(app,pool,adminEmail) {
@@ -20,7 +21,9 @@ export async function installOAuth(app,pool,adminEmail) {
   try {
    const d=await config(name),state=random(),browser=random(),verifier=random(),nonce=random();
    const session=/(?:^|;\s*)kv_session=([^;]+)/.exec(req.headers.cookie||'')?.[1];
-   const link=(await pool.query('SELECT email FROM kartvicio.sessions WHERE token_hash=$1 AND expires>now()',[digest(session||'')])).rows[0]?.email||null;
+   await pool.query('DELETE FROM kartvicio.sessions WHERE token_hash=$1',[digest(session||'')]);
+   res.clearCookie('kv_session',{path:'/'});
+   const link=null;
    await pool.query('DELETE FROM kartvicio.oauth_states WHERE expires<now()');
    await pool.query("INSERT INTO kartvicio.oauth_states VALUES($1,$2,$3,$4,$5,now()+interval '10 minutes',$6)",[digest(state),digest(browser),name,verifier,nonce,link]);
    res.cookie('kv_oauth',browser,{httpOnly:true,secure:secureCookies,sameSite:'lax',path:'/api/auth',maxAge:600000});
@@ -43,16 +46,20 @@ export async function installOAuth(app,pool,adminEmail) {
    try {
     await db.query('BEGIN');await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',[name+payload.sub]);
     const identity=(await db.query('SELECT email FROM kartvicio.identities WHERE provider=$1 AND subject=$2',[name,payload.sub])).rows[0];
-    email=identity?.email;
-    if(!email){
-     // Google is authoritative for verified Gmail or verified Workspace identities.
-     const googleVerified=name==='google'&&payload.email_verified===true&&typeof payload.email==='string'&&(/@gmail\.com$/i.test(payload.email)||Boolean(payload.hd));
-     email=state.link_email||(googleVerified?payload.email.trim().toLowerCase():null);
-     if(!email)throw Error('link_required');
+    email=resolveIdentity(name,payload,identity);
+    // First verified Gmail login creates only an unassigned viewer; inactive records remain blocked.
+    if(name==='google' && /@gmail\.com$/.test(email) && email!==adminEmail) {
+     await db.query("SELECT pg_advisory_xact_lock(hashtext('Usuario'))");
+     const exists=await db.query("SELECT 1 FROM kartvicio.records WHERE entity='Usuario' AND lower(trim(data->>'email'))=$1",[email]);
+     if(!exists.rowCount){const id=crypto.randomUUID(),now=new Date().toISOString();
+      await db.query("INSERT INTO kartvicio.records VALUES('Usuario',$1,$2)",[id,{id,email,nome:String(payload.name||email),permissao:'visualizador',ativo:true,campeonatos_ids:[],created_date:now,updated_date:now,created_by:email}]);
+     }
+    }
+    if(!identity || identity.email!==email){
      const configs=(await db.query("SELECT data FROM kartvicio.records WHERE entity='Usuario' AND lower(trim(data->>'email'))=$1",[email])).rows;
      if(email!==adminEmail&&(!configs.length||configs.some(r=>r.data.ativo===false)))throw Error('not_allowed');
      await db.query('INSERT INTO kartvicio.accounts(email,password_hash,full_name) VALUES($1,$2,$3) ON CONFLICT(email) DO NOTHING',[email,'!oauth-only',String(payload.name||email)]);
-     await db.query('INSERT INTO kartvicio.identities VALUES($1,$2,$3)',[name,payload.sub,email]);
+     await db.query('INSERT INTO kartvicio.identities VALUES($1,$2,$3) ON CONFLICT(provider,subject) DO UPDATE SET email=excluded.email',[name,payload.sub,email]);
     }
     const configs=(await db.query("SELECT data FROM kartvicio.records WHERE entity='Usuario' AND lower(trim(data->>'email'))=$1",[email])).rows;
     if(email!==adminEmail&&(!configs.length||configs.some(r=>r.data.ativo===false)))throw Error('not_allowed');
@@ -60,6 +67,6 @@ export async function installOAuth(app,pool,adminEmail) {
     await db.query('COMMIT');res.cookie('kv_session',session,{httpOnly:true,secure:secureCookies,sameSite:'strict',path:'/',maxAge:43200000});
    }catch(e){await db.query('ROLLBACK');throw e;}finally{db.release();}
    res.redirect('/');
-  }catch(e){const reason=['link_required','not_allowed'].includes(e.message)?e.message:'invalid';res.redirect('/login?auth_error='+reason);}
+  }catch(e){res.clearCookie('kv_session',{path:'/'});const reason=['link_required','not_allowed'].includes(e.message)?e.message:'invalid';res.redirect('/login?auth_error='+reason);}
  });
 }

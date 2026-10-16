@@ -5,7 +5,7 @@
  * - operador/visualizador sem campeonatos_ids: não vê nenhum (acesso pendente)
  */
 export const filtrarCampeonatosAcessiveis = (campeonatos, userPermissions) => {
-  if (!userPermissions) return campeonatos;
+  if (!userPermissions) return [];
   if (userPermissions.permissao === 'admin') return campeonatos;
   const ids = userPermissions.campeonatos_ids || [];
   if (ids.length === 0) return [];

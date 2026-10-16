@@ -38,6 +38,8 @@ import {
 "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import BottomNav from "@/components/BottomNav";
+import { useAuth } from '@/lib/AuthContext';
+import PageBoundary from '@/components/PageBoundary';
 
 const navigationItems = [
 {
@@ -142,6 +144,7 @@ const navigationItems = [
 
 
 export default function Layout({ children, currentPageName }) {
+  const { user: authenticatedUser } = useAuth();
   const location = useLocation();
   const [user, setUser] = React.useState(null);
   const [userPermissions, setUserPermissions] = React.useState(null);
@@ -155,7 +158,7 @@ export default function Layout({ children, currentPageName }) {
 
       setLoading(true);
       try {
-        const userData = await User.me();
+        const userData = authenticatedUser || await User.me();
         if (!isMounted) return;
 
         setUser(userData);
@@ -165,43 +168,7 @@ export default function Layout({ children, currentPageName }) {
           setLoading(false);
           return;
         }
-        const adminEmails = ['spider.vitoria@gmail.com', 'jonatha.soares@atisolution.com.br'];
-
-        if (adminEmails.includes(userData.email)) {
-          setUserPermissions({
-            nome: userData.full_name,
-            email: userData.email,
-            permissao: 'admin',
-            ativo: true
-          });
-        } else {
-          try {
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            const existingUsers = await Usuario.filter({ email: userData.email });
-
-            if (!isMounted) return;
-
-            if (existingUsers.length > 0) {
-              setUserPermissions(existingUsers[0]);
-            } else {
-              setUserPermissions({
-                nome: userData.full_name,
-                email: userData.email,
-                permissao: 'visualizador',
-                ativo: true,
-                _isNew: true
-              });
-            }
-          } catch (error) {
-            console.log("Erro ao buscar permissões, usando padrão visualizador");
-            setUserPermissions({
-              nome: userData.full_name,
-              email: userData.email,
-              permissao: 'visualizador',
-              ativo: true
-            });
-          }
-        }
+        throw new Error('Permissões não retornadas pelo servidor');
       } catch (error) {
         if (isMounted) {
           setUser(null);
@@ -218,7 +185,7 @@ export default function Layout({ children, currentPageName }) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [authenticatedUser]);
 
   const handleLogout = async () => {
     await User.logout();
@@ -500,7 +467,9 @@ export default function Layout({ children, currentPageName }) {
           </header>
 
           <div className="app-page-content min-w-0 w-full flex-1 p-2 sm:p-4 lg:p-6">
-            {userPermissions && React.cloneElement(children, { userPermissions })}
+            <PageBoundary key={currentPageName}><React.Suspense fallback={<div role="status" className="min-h-48 grid place-items-center text-slate-500">Carregando tela…</div>}>
+              {userPermissions && React.cloneElement(children, { userPermissions })}
+            </React.Suspense></PageBoundary>
           </div>
         </main>
       </div>

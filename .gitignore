@@ -33,3 +33,5 @@ base44/.app.jsonc
 # Dados pessoais e backups da migração ficam somente no ambiente local.
 private-data/
 backups/
+
+/public/ocr/

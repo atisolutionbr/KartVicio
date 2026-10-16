@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {createPendingReads} from '../src/api/pending-reads.mjs';
+const share=createPendingReads();let calls=0,finish;
+const read=()=>{calls++;return new Promise(resolve=>finish=resolve);};
+const first=share('query',read),second=share('query',read);
+await Promise.resolve();assert.equal(calls,1);finish({items:[{id:'one'}]});
+const [a,b]=await Promise.all([first,second]);a.items[0].id='changed';assert.equal(b.items[0].id,'one');
+await share('query',async()=>{calls++;return {};});assert.equal(calls,2);
+await assert.rejects(share('failed',async()=>{throw Error('temporary');}));
+assert.equal(await share('failed',async()=>42),42);
+const distinct=await Promise.all([share('a',async()=>1),share('b',async()=>2)]);assert.deepEqual(distinct,[1,2]);
+console.log('OK: consultas concorrentes idênticas compartilham somente a requisição em andamento; falhas, novas leituras e consultas diferentes não usam dados antigos.');

@@ -6,8 +6,9 @@ export default function PwaViewport() {
     const standalone = window.matchMedia('(display-mode: standalone)');
     const syncViewport = () => {
       const installed = standalone.matches || window.navigator.standalone === true;
+      if (installed) { try { localStorage.setItem('kartvicio:pwa-installed', '1'); } catch (_) {} }
       root.classList.toggle('pwa-installed', installed);
-      root.style.setProperty('--app-scale', installed ? '0.7' : '1');
+      root.style.setProperty('--app-scale', '0.7');
       root.style.setProperty('--app-viewport-width', `${root.clientWidth || window.innerWidth}px`);
       root.style.setProperty('--app-viewport-height', `${window.innerHeight}px`);
     };
