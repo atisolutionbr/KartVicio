@@ -30,6 +30,8 @@ import ComparadorPilotos from "@/components/simulador/ComparadorPilotos";
 import DiferencaPontosPilotos from "@/components/relatorios/DiferencaPontosPilotos";
 import CampeonatoLogo from "@/components/campeonatos/CampeonatoLogo";
 
+const ChancesTitulo = React.lazy(() => import('@/components/relatorios/ChancesTitulo'));
+
 const Campeonato = base44.entities.Campeonato;
 const InscricaoPiloto = base44.entities.InscricaoPiloto;
 
@@ -460,6 +462,7 @@ export default function RelatoriosPage({ userPermissions }) {
             </div>
           </div>
         )}
+        <React.Suspense fallback={<p>Carregando análise de título…</p>}><ChancesTitulo championship={campeonatoAtual} year={anoFiltro} category={categoriaFiltro}/></React.Suspense>
         {/* Stats Cards */}
         <div className="grid min-w-0 grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6">
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-xl">
