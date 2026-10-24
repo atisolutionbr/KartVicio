@@ -7,14 +7,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Users, Search, Filter, Link2, CheckCircle } from "lucide-react";
+import ExcluirPiloto from '@/components/pilotos/ExcluirPiloto';
 import PilotoForm from '@/components/pilotos/PilotoForm';
 
 export default function PilotosPage({ userPermissions }) {
+  const [deletingPilot,setDeletingPilot]=useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingPiloto, setEditingPiloto] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
-  const { pilotos: filteredPilotos, campeonatos, total, cursor, loading, ocupado, msgVinculo, erro, salvarPiloto, toggleVinculo, isVinculado, vincularTodosAtivos, loadMore } = usePilotosCadastro(searchTerm, statusFilter);
+  const { pilotos: filteredPilotos, campeonatos, total, cursor, loading, ocupado, msgVinculo, erro, salvarPiloto, toggleVinculo, isVinculado, vincularTodosAtivos, loadMore, excluirPiloto } = usePilotosCadastro(searchTerm, statusFilter);
   const vinculando = ocupado === 'todos';
   const handleSubmit = async (pilotoData) => {
     if (await salvarPiloto(editingPiloto, pilotoData)) {
@@ -69,6 +71,7 @@ export default function PilotosPage({ userPermissions }) {
 
         {erro && <p role="alert" className="text-destructive">{erro}</p>}
 
+        <ExcluirPiloto pilot={deletingPilot} onClose={()=>setDeletingPilot(null)} onDelete={excluirPiloto} busy={ocupado==='excluir'}/>
         {/* Search and Filter */}
         <Card>
           <CardContent className="p-4">
@@ -175,6 +178,7 @@ export default function PilotosPage({ userPermissions }) {
                           <Button variant="outline" size="sm" onClick={() => handleEdit(piloto)}>
                             Editar
                           </Button>
+                          <Button variant="destructive" size="sm" className="ml-2" disabled={Boolean(ocupado)} onClick={()=>setDeletingPilot(piloto)}>Excluir</Button>
                         </TableCell>
                       )}
                     </TableRow>

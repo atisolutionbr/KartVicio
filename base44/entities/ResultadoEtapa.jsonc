@@ -20,7 +20,7 @@
     },
     "categoria": {
       "type": "string",
-      "description": "Categoria do piloto nesta etapa (ex: A, B, J\u00fanior)"
+      "description": "Categoria do piloto nesta etapa (ex: A, B, Júnior)"
     },
     "status": {
       "type": "string",
@@ -30,15 +30,15 @@
         "DQ"
       ],
       "default": "regular",
-      "description": "Status do resultado: regular (com coloca\u00e7\u00e3o), NC (n\u00e3o completou), DQ (desqualificado). NC e DQ n\u00e3o pontuam mas registram participa\u00e7\u00e3o no grid."
+      "description": "Status do resultado: regular (com colocação), NC (não completou), DQ (desqualificado). NC e DQ não pontuam mas registram participação no grid."
     },
     "posicao": {
       "type": "number",
-      "description": "Posi\u00e7\u00e3o final do piloto (0 quando status NC/DQ)"
+      "description": "Posição final do piloto (0 quando status NC/DQ)"
     },
     "pontos": {
       "type": "number",
-      "description": "Pontos pela posi\u00e7\u00e3o"
+      "description": "Pontos pela posição"
     },
     "pontos_melhor_volta": {
       "type": "number",
@@ -81,7 +81,22 @@
     "descartado": {
       "type": "boolean",
       "default": false,
-      "description": "Se o resultado deve ser descartado da pontua\u00e7\u00e3o final"
+      "description": "Se o resultado deve ser descartado da pontuação final"
+    },
+    "numero_kart": {
+      "type": "string"
+    },
+    "melhor_volta_tempo": {
+      "type": "string"
+    },
+    "tempo_total": {
+      "type": "string"
+    },
+    "voltas": {
+      "type": "number"
+    },
+    "volta_melhor": {
+      "type": "number"
     }
   },
   "required": [

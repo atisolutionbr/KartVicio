@@ -27,6 +27,12 @@ const item=await call('Piloto','create',{data:{nome:'TESTE LOCAL DESCARTAVEL '+D
 try {
  const edited=await call('Piloto','update',{id:item.id,data:{ativo:false}});assert.equal(edited.ativo,false);
  const count=await call('Piloto','count',{query:{id:item.id}});assert.equal(count,1);
-} finally {await call('Piloto','delete',{id:item.id});}
+} finally {
+ const endpoint=base+'/api/pilots/'+item.id+'/';
+ const options={method:'POST',headers:{'Content-Type':'application/json',cookie}};
+ const preview=await(await fetch(endpoint+'preview-delete',{...options,body:'{}'})).json();
+ const deleted=await fetch(endpoint+'delete-complete',{...options,body:JSON.stringify({confirmName:preview.pilot.nome,version:preview.version})});
+ assert.equal(deleted.status,200);
+}
 assert.equal(await call('Piloto','count',{}),48);
 console.log(`OK: ${total} registros idênticos à exportação; autenticação, filtros, paginação, agregação e CRUD conferidos.`);

@@ -9,7 +9,7 @@ const hash=crypto.createHash('sha256').update(token).digest('hex');
 const call=async(action,data)=>fetch('http://localhost:6300/api/results/stage/'+action,{method:'POST',headers:{'Content-Type':'application/json',Cookie:'kv_session='+token},body:JSON.stringify({etapa_id:stage,...data})});
 try{
  await db.query("INSERT INTO kartvicio.sessions VALUES($1,$2,now()+interval '5 minutes')",[hash,owner]);
- for(const [entity,key,data] of [['Campeonato',camp,{id:camp,nome:'Teste descartável'}],['Etapa',stage,{id:stage,campeonato_id:camp,ano:2026,numero_etapa:1,dobrar_pontos:true}],['Piloto',id,{id,nome:pilot}],['TabelaPontosCampeonato','points-'+id,{id:'points-'+id,campeonato_id:camp,posicao:1,pontos:25}]])await db.query('INSERT INTO kartvicio.records VALUES($1,$2,$3)',[entity,key,data]);
+ for(const [entity,key,data] of [['Campeonato',camp,{id:camp,nome:'Teste descartável'}],['Etapa',stage,{id:stage,campeonato_id:camp,ano:2026,numero_etapa:1,dobrar_pontos:true}],['Piloto',id,{id,nome:pilot,ativo:true}],['InscricaoPiloto','link-'+id,{id:'link-'+id,piloto_nome:pilot,campeonato_id:camp,ativo:true}],['TabelaPontosCampeonato','points-'+id,{id:'points-'+id,campeonato_id:camp,posicao:1,pontos:25}]])await db.query('INSERT INTO kartvicio.records VALUES($1,$2,$3)',[entity,key,data]);
  let r=await call('import',{rows:[{piloto_nome:pilot,posicao:1,pontos_melhor_volta:2}]});assert.equal(r.status,200,await r.clone().text());assert.equal((await r.json()).count,1);
  const result=(await db.query("SELECT data FROM kartvicio.records WHERE entity='ResultadoEtapa' AND data->>'etapa_id'=$1",[stage])).rows[0].data;assert.equal(result.pontos_totais,52);
  r=await call('import',{rows:[{piloto_nome:pilot,posicao:1}]});assert.equal(r.status,400);

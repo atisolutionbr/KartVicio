@@ -1,3 +1,4 @@
+import {useEntitySubscriptions} from '@/hooks/useEntitySubscriptions';
 import React, { useState, useEffect } from "react";
 import { ResultadoEtapa, Piloto, Etapa, Penalidade } from "@/entities/all";
 import { base44 } from "@/api/base44Client";
@@ -36,6 +37,8 @@ const Campeonato = base44.entities.Campeonato;
 const InscricaoPiloto = base44.entities.InscricaoPiloto;
 
 export default function RelatoriosPage({ userPermissions }) {
+  const [refreshVersion,setRefreshVersion]=useState(0);
+  useEntitySubscriptions(()=>setRefreshVersion(v=>v+1),['Piloto','InscricaoPiloto','ResultadoEtapa','Penalidade','Etapa','Campeonato','TabelaPontos','TabelaPontosCampeonato']);
   const isAdmin = userPermissions?.permissao === 'admin';
   const [campeonatos, setCampeonatos] = useState([]);
   const [campeonatoId, setCampeonatoId] = useState(isAdmin ? "todos" : "");
@@ -61,7 +64,7 @@ export default function RelatoriosPage({ userPermissions }) {
         setCampeonatoId(acessiveis[0].id);
       }
     });
-  }, [userPermissions]);
+  }, [userPermissions,refreshVersion]);
 
   // Pilotos inscritos no campeonato selecionado (para o card "Pilotos Ativos")
   useEffect(() => {
@@ -73,7 +76,7 @@ export default function RelatoriosPage({ userPermissions }) {
     InscricaoPiloto.filter({ campeonato_id: campeonatoId, ativo: true }).then(list => {
       setPilotosInscritosCount(list.length);
     });
-  }, [campeonatoId]);
+  }, [campeonatoId,refreshVersion]);
 
   // Ao trocar campeonato, reseta filtros (não força o ano aqui — o loadData vai detectar)
   useEffect(() => {
@@ -131,7 +134,7 @@ export default function RelatoriosPage({ userPermissions }) {
     };
 
     if (campeonatos.length > 0 || campeonatoId === "todos") loadData();
-  }, [campeonatoId, anoFiltro, campeonatos]);
+  }, [campeonatoId, anoFiltro, campeonatos,refreshVersion]);
 
   const campeonatoAtual = campeonatos.find(c => c.id === campeonatoId);
   const categoriasCampeonato = campeonatoAtual?.categorias || [];

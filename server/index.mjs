@@ -7,6 +7,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { matches, pageRows, aggregateRows } from './query.mjs';
+import {installPilotLifecycle} from './pilot-lifecycle.mjs';
+import {lockRelations,validateRelations} from './relations.mjs';
 import {installStageResults} from './stage-results.mjs';
 import { installOAuth } from './oauth.mjs';
 import { origin, secureCookies, database } from './config.mjs';
@@ -88,6 +90,10 @@ app.use('/api',async(req,res,next)=>{
   if(account.email!==adminEmail && permission.permissao==='admin')permission.permissao='visualizador';
   if(permission.ativo===false) return res.status(403).json({message:'Usuário inativo'});
   req.user={...account,id:account.email,role:permission.permissao==='admin'?'admin':'user',permissions:permission};
+  if(permission.permissao!=='admin'){
+    const names=await pool.query("SELECT DISTINCT data->>'piloto_nome' AS name FROM kartvicio.records WHERE entity IN ('InscricaoPiloto','ResultadoEtapa') AND data->>'campeonato_id'=ANY($1::text[])",[permission.campeonatos_ids||[]]);
+    req.allowedPilots=new Set(names.rows.map(r=>r.name));
+  }
   next();
 });
 app.get('/api/auth/me',(req,res)=>res.json(req.user));
@@ -97,6 +103,7 @@ const permitted=(req,entity,row)=>{
   if(p.permissao==='admin')return true;
   if(entity==='Usuario')return row.email?.toLowerCase()===req.user.email;
   if(entity==='LogAlteracao')return false;
+  if(entity==='Piloto'||entity==='Pontuacao')return req.allowedPilots?.has(entity==='Piloto'?row.nome:row.piloto_nome)===true;
   const camp=entity==='Campeonato'?row.id:row.campeonato_id;
   return camp ? (p.campeonatos_ids||[]).includes(camp) : true;
 };
@@ -105,6 +112,8 @@ const assertWrite=(req,entity,row)=>{
   if(role!=='admin' && !(role==='operador' && ['ResultadoEtapa','Penalidade','LogAlteracao'].includes(entity))) throw Object.assign(new Error('Sem permissão para alterar este cadastro'),{status:403});
   if(!permitted(req,entity,row) && entity!=='LogAlteracao') throw Object.assign(new Error('Campeonato sem acesso'),{status:403});
 };
+const invalidate=entities=>{for(const entity of new Set(entities))for(const client of subscribers)client.res.write(`data: ${JSON.stringify({entity,type:'update'})}\n\n`);};
+installPilotLifecycle(app,pool,invalidate);
 installStageResults(app,pool,{assertWrite,broadcast:etapa=>{for(const entity of ['ResultadoEtapa','Penalidade','Etapa'])for(const client of subscribers)if(permitted(client.req,entity,etapa))client.res.write(`data: ${JSON.stringify({entity,type:'update'})}\n\n`);}});
 app.post('/api/entities/:entity/:action',async(req,res)=>{
   const {entity,action}=req.params, body=req.body;
@@ -121,9 +130,9 @@ app.post('/api/entities/:entity/:action',async(req,res)=>{
     if(action==='count')return res.json(filtered.length);
     return res.json(pageRows(filtered,body.options||{},body.legacy));
   }
-  const db=await pool.connect(); const events=[];
+  const db=await pool.connect(); const events=[],relatedChanges=[];
   try {
-    await db.query('BEGIN');
+    await db.query('BEGIN');await lockRelations(db);
     await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',[entity]);
     const rows=await read(entity,db);
     const save=async(data,id)=>{
@@ -143,6 +152,7 @@ app.post('/api/entities/:entity/:action',async(req,res)=>{
         if(entity==='ResultadoEtapa' && stage.finalizada && (!old || Object.keys(data).some(key=>!['id','descartado','pontos','pontos_melhor_volta','pontos_penalidade','pontos_tipo_extra','pontos_totais'].includes(key))))throw Object.assign(new Error('Reabra a etapa para alterar resultados.'),{status:409});
       }
       assertWrite(req,entity,row);
+      relatedChanges.push(...await validateRelations(db,entity,row,old));
       if(entity==='Usuario' && row.permissao==='admin' && row.email!==adminEmail)throw Object.assign(new Error('Somente o administrador principal pode ter este perfil.'),{status:400});
       if(entity==='Usuario'&&rows.some(r=>r.id!==row.id&&String(r.email||'').trim().toLowerCase()===row.email))throw Object.assign(new Error('Já existe um usuário com este e-mail.'),{status:409});
       for(const key of schemas[entity].required||[])if(row[key]===undefined||row[key]===null||row[key]==='')throw new Error(`Campo obrigatório: ${key}`);
@@ -160,7 +170,10 @@ app.post('/api/entities/:entity/:action',async(req,res)=>{
     else if(action==='update')result=await save(body.data,body.id);
     else if(action==='delete') {
       const old=rows.find(r=>r.id===body.id); if(!old)throw Object.assign(new Error('Registro não encontrado'),{status:404});
-      assertWrite(req,entity,old);await db.query('DELETE FROM kartvicio.records WHERE entity=$1 AND id=$2',[entity,body.id]);result={id:body.id};events.push({type:'delete',id:body.id,data:old});
+      assertWrite(req,entity,old);
+      if(entity==='Piloto')throw Object.assign(new Error('Use a exclusão completa com prévia de vínculos.'),{status:409});
+      if(['Campeonato','Etapa'].includes(entity)){const field=entity==='Campeonato'?'campeonato_id':'etapa_id';const linked=await db.query('SELECT 1 FROM kartvicio.records WHERE data->>$1=$2 LIMIT 1',[field,old.id]);if(linked.rowCount)throw Object.assign(new Error('Existem registros vinculados. Remova ou transfira os vínculos antes de excluir.'),{status:409});}
+      await db.query('DELETE FROM kartvicio.records WHERE entity=$1 AND id=$2',[entity,body.id]);result={id:body.id};events.push({type:'delete',id:body.id,data:old});
     } else if(action==='updateMany') {
       let count=0;for(const row of [...rows].filter(r=>matches(r,body.query))) {await save(body.data.$set||body.data,row.id);count++;}result={modified_count:count,has_more:false};
     } else if(action==='upsert'||action==='bulkCreate') {
@@ -168,6 +181,7 @@ app.post('/api/entities/:entity/:action',async(req,res)=>{
       for(const data of body.records) {const old=action==='upsert'?rows.find(r=>body.key.every(k=>r[k]===data[k])):null;result.push(await save(data,old?.id));}
     } else throw new Error('Operação não suportada');
     await db.query('COMMIT');
+    if(relatedChanges.length)invalidate(relatedChanges);
     if(entity==='Usuario')for(const client of subscribers)client.res.end();
     for(const event of events)for(const client of subscribers)if(permitted(client.req,entity,event.data)) client.res.write(`data: ${JSON.stringify({entity,...event})}\n\n`);
     res.json(result);

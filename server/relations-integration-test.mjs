@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import express from 'express';
+import pg from 'pg';
+import {validateRelations,lockRelations} from './relations.mjs';
+import {installPilotLifecycle} from './pilot-lifecycle.mjs';
+import {installStageResults} from './stage-results.mjs';
+// This harness refuses every database except the disposable review database.
+if(process.env.PGDATABASE!=='kv_review_disposable')throw Error('Disposable test database required');
+const pool=new pg.Pool();let server;
+const insert=(entity,id,data)=>pool.query('INSERT INTO kartvicio.records VALUES($1,$2,$3)',[entity,id,{id,...data}]);
+const read=async(entity,id)=>(await pool.query('SELECT data FROM kartvicio.records WHERE entity=$1 AND id=$2',[entity,id])).rows[0]?.data;
+const edit=async(entity,id,changes)=>{const db=await pool.connect();try{await db.query('BEGIN');await lockRelations(db);const old=await read(entity,id),row={...old,...changes};await validateRelations(db,entity,row,old);await db.query('UPDATE kartvicio.records SET data=$3 WHERE entity=$1 AND id=$2',[entity,id,row]);await db.query('COMMIT');}catch(e){await db.query('ROLLBACK');throw e;}finally{db.release();}};
+try{
+ await pool.query('CREATE SCHEMA kartvicio; CREATE TABLE kartvicio.records(entity text NOT NULL,id text NOT NULL,data jsonb NOT NULL,PRIMARY KEY(entity,id))');
+ await insert('Campeonato','camp',{nome:'Synthetic championship'});await insert('Etapa','stage',{campeonato_id:'camp',ano:2030,dobrar_pontos:true});
+ await insert('Piloto','a',{nome:'Synthetic Alfa',ativo:true});await insert('Piloto','b',{nome:'Synthetic Beta',ativo:true});
+ for(const [entity,id,data] of [['InscricaoPiloto','ia',{campeonato_id:'camp',piloto_nome:'Synthetic Alfa',ativo:true}],['InscricaoPiloto','ib',{campeonato_id:'camp',piloto_nome:'Synthetic Beta',ativo:true}],['Penalidade','pa',{campeonato_id:'camp',etapa_id:'stage',piloto_nome:'Synthetic Alfa',pontos_penalidade:3}],['Pontuacao','points-a',{piloto_nome:'Synthetic Alfa'}],['LogAlteracao','log-a',{piloto_nome:'Synthetic Alfa'}],['TabelaPontosCampeonato','table',{campeonato_id:'camp',posicao:1,pontos:25}]])await insert(entity,id,data);
+ await edit('Piloto','a',{nome:'Synthetic Alfa Renamed'});
+ for(const [entity,id] of [['InscricaoPiloto','ia'],['Penalidade','pa'],['Pontuacao','points-a'],['LogAlteracao','log-a']])assert.equal((await read(entity,id)).piloto_nome,'Synthetic Alfa Renamed');
+ await assert.rejects(edit('Piloto','a',{nome:'Synthetic Beta'}),/existe/);assert.equal((await read('Piloto','a')).nome,'Synthetic Alfa Renamed');
+ const app=express();app.use(express.json());app.use((req,res,next)=>{req.user={email:'test@example.invalid',permissions:{permissao:req.headers['x-test-role']||'admin'}};next();});
+ const invalidations=[];installPilotLifecycle(app,pool,entities=>invalidations.push(...entities));
+ installStageResults(app,pool,{assertWrite:()=>{},broadcast:()=>{}});app.use((e,req,res,next)=>res.status(e.status||400).json({message:e.message}));
+ server=await new Promise(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});
+ const base='http://127.0.0.1:'+server.address().port;
+ const call=async(path,body={},role='admin')=>{const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json','x-test-role':role},body:JSON.stringify(body)});return {status:r.status,data:await r.json()};};
+ const rows=[{piloto_nome:'Synthetic Alfa Renamed',posicao:1,pontos_melhor_volta:2,numero_kart:'30',melhor_volta_tempo:'00:41.772',tempo_total:'00:15:29.000',voltas:22,volta_melhor:5}];
+ let response=await call('/api/results/stage/import',{etapa_id:'stage',rows:[...rows,{piloto_nome:'Unknown',posicao:2}]});assert.equal(response.status,400);assert.equal((await pool.query("SELECT count(*) FROM kartvicio.records WHERE entity='ResultadoEtapa'")).rows[0].count,'0','failed batch rolled back');
+ response=await call('/api/results/stage/import',{etapa_id:'stage',rows});assert.equal(response.status,200,JSON.stringify(response));
+ const result=(await pool.query("SELECT data FROM kartvicio.records WHERE entity='ResultadoEtapa'")).rows[0].data;assert.equal(result.pontos_totais,49);assert.equal(result.numero_kart,'30');assert.equal(result.voltas,22);assert.equal(result.melhor_volta_tempo,'00:41.772');
+ assert.equal((await call('/api/results/stage/import',{etapa_id:'stage',rows})).status,400);
+ assert.equal((await call('/api/pilots/a/preview-delete',{},'visualizador')).status,403);
+ let preview=(await call('/api/pilots/a/preview-delete')).data;assert.equal(preview.counts.ResultadoEtapa,1);assert.equal(preview.total,6);
+ assert.equal((await call('/api/pilots/a/delete-complete',{confirmName:'wrong',version:preview.version})).status,409);
+ await insert('LogAlteracao','new-log',{piloto_nome:'Synthetic Alfa Renamed'});
+ assert.equal((await call('/api/pilots/a/delete-complete',{confirmName:preview.pilot.nome,version:preview.version})).status,409,'stale preview rejected');
+ await edit('Piloto','a',{ativo:false});assert.equal((await read('InscricaoPiloto','ia')).ativo,false);
+ await insert('Piloto','duplicate',{nome:'Synthetic Alfa Renamed',ativo:true});preview=(await call('/api/pilots/a/preview-delete')).data;assert.equal(preview.blocked,true);
+ assert.equal((await call('/api/pilots/a/delete-complete',{confirmName:preview.pilot.nome,version:preview.version})).status,400);
+ await pool.query("DELETE FROM kartvicio.records WHERE entity='Piloto' AND id='duplicate'");
+ // Stage deletion archives operational records; pilot deletion also removes old recovery copies.
+ assert.equal((await call('/api/results/stage/delete',{etapa_id:'stage',confirm:'wrong'})).status,403);
+ assert.equal((await call('/api/results/stage/delete',{etapa_id:'stage',confirm:'stage'})).status,200);
+ assert.equal((await pool.query('SELECT count(*) FROM kartvicio.resultados_excluidos')).rows[0].count,'2');
+ preview=(await call('/api/pilots/a/preview-delete')).data;response=await call('/api/pilots/a/delete-complete',{confirmName:preview.pilot.nome,version:preview.version});assert.equal(response.status,200,JSON.stringify(response));
+ assert.equal(await read('Piloto','a'),undefined);assert.equal((await pool.query("SELECT count(*) FROM kartvicio.records WHERE data->>'piloto_nome'='Synthetic Alfa Renamed'")).rows[0].count,'0');
+ assert.equal((await pool.query('SELECT count(*) FROM kartvicio.resultados_excluidos')).rows[0].count,'0');assert.equal((await pool.query('SELECT count(*) FROM kartvicio.pilot_deletion_archive')).rows[0].count,'7');
+ assert(await read('Piloto','b'));assert(await read('InscricaoPiloto','ib'));assert(await read('Campeonato','camp'));assert(invalidations.includes('ResultadoEtapa'));
+ console.log('OK: isolated PostgreSQL transactions, rename cascade, duplicate protection, inactive links, import atomic rollback, scoring/timing, stage archive, admin-only complete pilot deletion, stale confirmation and unrelated pilot preservation.');
+}finally{if(server)await new Promise(resolve=>server.close(resolve));await pool.end();}

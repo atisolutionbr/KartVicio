@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44, request as base44Request } from '@/api/base44Client';
 import { useEntitySubscriptions } from '@/hooks/useEntitySubscriptions';
 import { atualizarVinculos, definirVinculo, valoresDistintos } from '@/components/pilotos/vinculosPilotos';
 
@@ -17,6 +17,7 @@ export default function usePilotosCadastro(searchTerm, statusFilter) {
       const term = searchTerm.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [{ nome: { $regex: term, $options: 'i' } }, { nome_equipe: { $regex: term, $options: 'i' } }];
     }
+    try {
     const [page, camps, count] = await Promise.all([
       base44.entities.Piloto.filter(query, { sort: '-created_date', limit: 50, cursor: nextCursor }),
       base44.entities.Campeonato.list({ sort: '-ano', limit: 50 }), base44.entities.Piloto.count(query),
@@ -31,7 +32,9 @@ export default function usePilotosCadastro(searchTerm, statusFilter) {
     loaded.current = displayed;
     setPilotos(displayed); setCampeonatos(camps.items);
     setInscricoes(links.rows.map(row => ({ ...row, ativo: true })));
-    setCursor(page.has_more ? page.next_cursor : null); setTotal(count); setLoading(false);
+    setCursor(page.has_more ? page.next_cursor : null); setTotal(count);
+    } catch(error) { if(request===version.current)setErro(error.message||'Falha ao carregar pilotos.'); }
+    finally { if(request===version.current)setLoading(false); }
   }, [searchTerm, statusFilter]);
   useEffect(() => { loadAll(); }, [loadAll]);
   useEntitySubscriptions(() => loadAll(), ['Piloto', 'InscricaoPiloto', 'Campeonato']);
@@ -45,8 +48,7 @@ export default function usePilotosCadastro(searchTerm, statusFilter) {
   const salvarPiloto = (editing, data) => executar('piloto', async () => {
     if (editing) await base44.entities.Piloto.update(editing.id, data);
     else await base44.entities.Piloto.create(data);
-    if (editing && editing.nome !== data.nome) await atualizarVinculos({ piloto_nome: editing.nome }, { piloto_nome: data.nome });
-    if (data.ativo === false) await atualizarVinculos({ piloto_nome: data.nome, ativo: { $ne: false } }, { ativo: false });
+    // Rename and deactivation propagate atomically on the server.
   });
   const isVinculado = (nome, id) => pilotos.some(p => p.nome === nome && p.ativo === true) && inscricoes.some(i => i.piloto_nome === nome && i.campeonato_id === id);
   const toggleVinculo = (piloto, id) => executar(`${piloto.id}:${id}`, async () => {
@@ -62,5 +64,6 @@ export default function usePilotosCadastro(searchTerm, statusFilter) {
     if (nomes.length && camps.items.length) await atualizarVinculos({ piloto_nome: { $in: nomes }, campeonato_id: { $in: camps.items.map(c => c.id) }, ativo: { $ne: true } }, { ativo: true });
     setMsgVinculo('Pilotos ativos vinculados aos campeonatos ativos.');
   });
-  return { pilotos, campeonatos, total, cursor, loading, ocupado, msgVinculo, erro, salvarPiloto, toggleVinculo, isVinculado, vincularTodosAtivos, loadMore: () => loadAll(cursor) };
+  const excluirPiloto = (id,data) => executar('excluir',()=>base44Request('/api/pilots/'+encodeURIComponent(id)+'/delete-complete',data));
+  return { excluirPiloto, pilotos, campeonatos, total, cursor, loading, ocupado, msgVinculo, erro, salvarPiloto, toggleVinculo, isVinculado, vincularTodosAtivos, loadMore: () => loadAll(cursor) };
 }

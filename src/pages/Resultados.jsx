@@ -544,7 +544,7 @@ export default function ResultadosPage({ userPermissions }) {
       )}
 
       {resultadosFiltrados.length>30 && <div className="flex items-center gap-3"><Button variant="outline" disabled={resultPage===0} onClick={()=>setResultPage(p=>p-1)}>Anterior</Button><span>Página {resultPage+1} de {Math.ceil(resultadosFiltrados.length/30)}</span><Button variant="outline" disabled={(resultPage+1)*30>=resultadosFiltrados.length} onClick={()=>setResultPage(p=>p+1)}>Próxima</Button></div>}
-      {showDocument && canCreate && <ImportarDocumento key={campeonatoId} etapas={etapas} pilotos={pilotos} onComplete={()=>{setShowDocument(false);loadData();}} onCancel={()=>setShowDocument(false)}/>}
+      {showDocument && canCreate && <ImportarDocumento key={campeonatoId} etapas={etapas} pilotos={pilotos} bonusMelhorVolta={Number(campeonatos.find(c=>c.id===campeonatoId)?.pontos_melhor_volta)||0} onComplete={()=>{setShowDocument(false);loadData();}} onCancel={()=>setShowDocument(false)}/>}
       <AlertDialog open={Boolean(deleteStage)} onOpenChange={open=>{if(!open&&!stageBusy)setDeleteStage('');}}>
        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Excluir todos os resultados desta etapa?</AlertDialogTitle><AlertDialogDescription>Etapa {etapas.find(e=>e.id===deleteStage)?.numero_etapa}: todos os resultados e penalidades serão retirados do ranking. A etapa ficará aberta e não publicada. Pilotos e demais etapas serão mantidos.</AlertDialogDescription></AlertDialogHeader>
        {stageError&&<p role="alert" className="text-red-700">{stageError}</p>}

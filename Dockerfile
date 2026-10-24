@@ -10,6 +10,7 @@ ENV NODE_ENV=production
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --chown=node:node server ./server
+COPY --chown=node:node src/utils/resultText.mjs ./src/utils/resultText.mjs
 COPY --chown=node:node base44/entities ./base44/entities
 COPY package.json ./
 RUN mkdir -p private-data/uploads && chown -R node:node private-data
