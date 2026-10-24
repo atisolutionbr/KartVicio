@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {calcularDiferencasPontos} from '../src/utils/pointGaps.mjs';
+const row=(piloto_nome,etapa_id,pontos_totais,other={})=>({piloto_nome,etapa_id,pontos_totais,...other});
+const resultados=[row('A','1',10),row('A','2',10),row('A','3',30),row('B','1',25),row('B','2',25),row('B','3',5),row('C','1',40),row('C','2',9,{pontos_penalidade:1}),row('D','1',0),row('D','3',1000,{descartado:true})];
+const args={resultados,campeonato:{descarte_quantidade:1}};
+const raw=calcularDiferencasPontos(args);assert.deepEqual(raw.map(r=>[r.piloto,r.pontos]),[['B',55],['A',50],['C',49],['D',0]]);assert.equal(raw[1].difLider,-5);
+const dropped=calcularDiferencasPontos({...args,aplicarDescarte:true});assert.deepEqual(dropped.map(r=>[r.piloto,r.pontos]),[['B',50],['C',49],['A',40],['D',0]]);assert.equal(dropped[2].difLider,-10);assert.equal(dropped[2].difAnterior,-9);assert.equal(dropped[0].difAnterior,null);
+assert.equal(dropped.find(r=>r.piloto==='C').etapas,2);
+const protectedPenalty=calcularDiferencasPontos({resultados:[row('A','1',4,{pontos_penalidade:1}),row('A','2',20)],campeonato:{descarte_quantidade:1},aplicarDescarte:true});assert.equal(protectedPenalty[0].pontos,4);
+assert.deepEqual(calcularDiferencasPontos({...args,campeonato:undefined,aplicarDescarte:true}),raw);
+assert.deepEqual(calcularDiferencasPontos({}),[]);
+console.log('OK: gaps before/after discards, reordering, missing races, protected penalties, zero-score pilots and manual exclusion.');

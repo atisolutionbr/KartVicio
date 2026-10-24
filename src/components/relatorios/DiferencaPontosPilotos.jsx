@@ -1,33 +1,16 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getRowColorClass } from "@/utils/rankingColors";
+import {calcularDiferencasPontos} from '@/utils/pointGaps.mjs';
 import { TrendingUp } from "lucide-react";
 
 // Relatório de diferença de pontos entre pilotos: mostra o gap de cada piloto
 // para o líder e para o piloto imediatamente acima, evidenciando disputas próximas.
-export default function DiferencaPontosPilotos({ resultados, etapas }) {
-  const dados = useMemo(() => {
-    const validos = (resultados || []).filter(r => !r.descartado);
-    const porPiloto = {};
-    validos.forEach(r => {
-      const p = r.piloto_nome;
-      if (!porPiloto[p]) porPiloto[p] = { piloto: p, pontos: 0, etapas: 0, categoria: r.categoria || "" };
-      porPiloto[p].pontos += r.pontos_totais || 0;
-      porPiloto[p].etapas += 1;
-    });
-    const ranking = Object.values(porPiloto)
-      .sort((a, b) => b.pontos - a.pontos)
-      .map((item, i) => ({ ...item, posicao: i + 1 }));
-
-    const liderPts = ranking[0]?.pontos ?? 0;
-    return ranking.map((item, i) => ({
-      ...item,
-      difLider: item.pontos - liderPts,
-      difAnterior: i === 0 ? null : item.pontos - ranking[i - 1].pontos,
-    }));
-  }, [resultados]);
+export default function DiferencaPontosPilotos({ resultados, etapas, campeonato, categoria = 'todas' }) {
+  const [aplicarDescarte,setAplicarDescarte]=useState(false);
+  const dados = useMemo(()=>calcularDiferencasPontos({resultados,etapas,campeonato,categoria,aplicarDescarte}),[resultados,etapas,campeonato,categoria,aplicarDescarte]);
 
   const difBadge = (dif) => {
     if (dif === null || dif === undefined) return <span className="text-gray-300">—</span>;
@@ -58,6 +41,13 @@ export default function DiferencaPontosPilotos({ resultados, etapas }) {
           Mostra o quanto cada piloto está atrás do líder e do piloto imediatamente acima. Gaps em
           <span className="text-red-700 font-semibold"> vermelho</span> indicam disputa direta (≤ 3 pts).
         </p>
+        <div className="mb-4 rounded-lg bg-slate-50 border p-3 space-y-2">
+          <label className="flex items-center gap-2 font-semibold cursor-pointer">
+            <input type="checkbox" className="h-5 w-5 accent-yellow-500" checked={aplicarDescarte} disabled={!campeonato} onChange={e=>setAplicarDescarte(e.target.checked)}/>
+            Aplicar descartes na diferença de pontos
+          </label>
+          <p className="text-xs text-gray-600">{!campeonato?'Selecione um campeonato específico para aplicar sua regra de descarte.':aplicarDescarte?`Com ${campeonato.descarte_quantidade??1} descarte(s): faltas consomem descartes e resultados penalizados não são descartados. Classificação e diferenças recalculadas pela mesma regra do simulador.`:'Sem descarte automático: mostra os pontos acumulados, excluindo resultados descartados manualmente.'}</p>
+        </div>
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-100">
