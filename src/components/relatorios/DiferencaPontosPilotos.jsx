@@ -4,13 +4,20 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getRowColorClass } from "@/utils/rankingColors";
 import {calcularDiferencasPontos} from '@/utils/pointGaps.mjs';
+import {Switch} from '@/components/ui/switch';
 import { TrendingUp } from "lucide-react";
 
 // Relatório de diferença de pontos entre pilotos: mostra o gap de cada piloto
 // para o líder e para o piloto imediatamente acima, evidenciando disputas próximas.
-export default function DiferencaPontosPilotos({ resultados, etapas, campeonato, categoria = 'todas' }) {
+export default function DiferencaPontosPilotos({ resultados, etapas, campeonato, campeonatos = [], categoria = 'todas' }) {
   const [aplicarDescarte,setAplicarDescarte]=useState(false);
-  const dados = useMemo(()=>calcularDiferencasPontos({resultados,etapas,campeonato,categoria,aplicarDescarte}),[resultados,etapas,campeonato,categoria,aplicarDescarte]);
+  const [campeonatoLocal,setCampeonatoLocal]=useState('');
+  const switchId=React.useId();
+  const regra=campeonato || campeonatos.find(c=>c.id===campeonatoLocal) || campeonatos[0];
+  const resultadosDoCampeonato=useMemo(()=>regra?(resultados||[]).filter(r=>r.campeonato_id===regra.id):(resultados||[]),[resultados,regra]);
+  const etapasDoCampeonato=useMemo(()=>regra?(etapas||[]).filter(e=>e.campeonato_id===regra.id):(etapas||[]),[etapas,regra]);
+  const dados = useMemo(()=>calcularDiferencasPontos({resultados:resultadosDoCampeonato,etapas:etapasDoCampeonato,campeonato:regra,categoria,aplicarDescarte}),[resultadosDoCampeonato,etapasDoCampeonato,regra,categoria,aplicarDescarte]);
+
 
   const difBadge = (dif) => {
     if (dif === null || dif === undefined) return <span className="text-gray-300">—</span>;
@@ -29,7 +36,7 @@ export default function DiferencaPontosPilotos({ resultados, etapas, campeonato,
   };
 
   return (
-    <Card className="shadow-lg">
+    <Card id="diferenca-pontos-pilotos" className="shadow-lg">
       <CardHeader className="copa-gradient-navy text-white">
         <CardTitle className="flex items-center gap-3">
           <TrendingUp className="w-6 h-6" />
@@ -42,11 +49,16 @@ export default function DiferencaPontosPilotos({ resultados, etapas, campeonato,
           <span className="text-red-700 font-semibold"> vermelho</span> indicam disputa direta (≤ 3 pts).
         </p>
         <div className="mb-4 rounded-lg bg-slate-50 border p-3 space-y-2">
-          <label className="flex items-center gap-2 font-semibold cursor-pointer">
-            <input type="checkbox" className="h-5 w-5 accent-yellow-500" checked={aplicarDescarte} disabled={!campeonato} onChange={e=>setAplicarDescarte(e.target.checked)}/>
-            Aplicar descartes na diferença de pontos
-          </label>
-          <p className="text-xs text-gray-600">{!campeonato?'Selecione um campeonato específico para aplicar sua regra de descarte.':aplicarDescarte?`Com ${campeonato.descarte_quantidade??1} descarte(s): faltas consomem descartes e resultados penalizados não são descartados. Classificação e diferenças recalculadas pela mesma regra do simulador.`:'Sem descarte automático: mostra os pontos acumulados, excluindo resultados descartados manualmente.'}</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-h-12">
+              <Switch id={switchId} aria-label="Aplicar descartes na diferença de pontos" checked={aplicarDescarte} disabled={!regra} onCheckedChange={setAplicarDescarte} className="h-7 w-12 min-h-0 min-w-0 data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-400 [&>span]:h-5 [&>span]:w-5 [&>span]:data-[state=checked]:translate-x-5"/>
+              <label htmlFor={switchId} className="font-semibold cursor-pointer py-3 inline-flex items-center min-h-[calc(44px/var(--app-scale))]">Aplicar descartes na diferença de pontos</label>
+              <Badge className={aplicarDescarte?'bg-emerald-100 text-emerald-800':'bg-slate-200 text-slate-700'}>{aplicarDescarte?'Ligado · com descartes':'Desligado · sem descartes'}</Badge>
+            </div>
+            {!campeonato&&campeonatos.length>1&&<label className="text-sm">Campeonato deste relatório<select aria-label="Campeonato da diferença de pontos" className="block border rounded p-2 bg-white" value={regra?.id||''} onChange={e=>setCampeonatoLocal(e.target.value)}>{campeonatos.map(c=><option key={c.id} value={c.id}>{c.nome} ({c.ano})</option>)}</select></label>}
+          </div>
+          <p className="text-sm font-semibold text-slate-700">{regra?`Campeonato: ${regra.nome} · ${regra.descarte_quantidade??1} descarte(s) configurado(s)`:'Nenhum campeonato disponível para esta seleção.'}</p>
+          <p role="status" className="text-xs text-gray-600">{aplicarDescarte?`Ligado: faltas consomem descartes e resultados penalizados não são descartados. Classificação e diferenças recalculadas pela mesma regra do simulador.`:'Desligado: mostra os pontos acumulados, excluindo resultados descartados manualmente.'}</p>
         </div>
         <Table>
           <TableHeader>

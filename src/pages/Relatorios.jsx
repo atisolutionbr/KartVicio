@@ -520,7 +520,7 @@ export default function RelatoriosPage({ userPermissions }) {
         />
 
         {/* Diferença de Pontos entre Pilotos */}
-        <DiferencaPontosPilotos key={`${campeonatoId}-${anoFiltro}-${categoriaFiltro}`} resultados={resultadosVisiveis} etapas={etapas} campeonato={campeonatoAtual} categoria={categoriaFiltro} />
+        <DiferencaPontosPilotos key={`${campeonatoId}-${anoFiltro}-${categoriaFiltro}`} resultados={resultadosVisiveis} etapas={etapas} campeonato={campeonatoAtual} campeonatos={campeonatos} categoria={categoriaFiltro} />
 
         {/* Evolução dos Pontos */}
         <EvolucaoPontosChart
