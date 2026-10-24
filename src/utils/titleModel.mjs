@@ -49,6 +49,7 @@ export function simulateTitle(model,{iterations=6000,seed=174241,onProgress}={})
  const rnd=randomGenerator(seed),weights=Array(n).fill(0),examples=Array.from({length:n},()=>[]),earliest=Array(n).fill(null),firstPaths=Array(n).fill(null);
  const total=model.completed+pending.length;
  const proof=pilots.map((p,i)=>({eliminated:pilots.some((q,j)=>i!==j&&p.upper<q.lower-1e-8),clinched:pilots.every((q,j)=>i===j||p.lower>q.upper+1e-8)}));
+ const bestRank=Array(n).fill(n),worstRank=Array(n).fill(1);
  const runs=pending.length?iterations:1;
  for(let run=0;run<runs;run++){
   const history=pilots.map(p=>[...p.history]),path=[],earnedPath=[];
@@ -67,8 +68,40 @@ export function simulateTitle(model,{iterations=6000,seed=174241,onProgress}={})
    }
   }
   const scores=history.map(h=>totalPoints(h,total,drops)),best=Math.max(...scores),winners=scores.map((s,i)=>Math.abs(s-best)<1e-8?i:-1).filter(i=>i>=0);
+  for(let i=0;i<n;i++){
+   const above=scores.filter(s=>s>scores[i]+1e-8).length;
+   const equal=scores.filter(s=>Math.abs(s-scores[i])<1e-8).length;
+   bestRank[i]=Math.min(bestRank[i],above+1);worstRank[i]=Math.max(worstRank[i],above+equal);
+  }
   winners.forEach(i=>{weights[i]+=1/winners.length;if(examples[i].length<3)examples[i].push({finishes:path.map(a=>[...a]),earned:earnedPath.map(a=>[...a]),scores,tied:winners.length>1});});
   if(onProgress && run%250===0)onProgress(run/runs);
  }
- return {iterations:runs,seed,pilots:pilots.map((p,i)=>({...p,index:i,probability:100*weights[i]/runs,...proof[i],earliest:earliest[i],earlyPath:firstPaths[i],examples:examples[i]})).sort((a,b)=>b.current-a.current||a.name.localeCompare(b.name))};
+ return {iterations:runs,seed,pilots:pilots.map((p,i)=>({...p,index:i,bestObservedRank:bestRank[i],worstObservedRank:worstRank[i],probability:100*weights[i]/runs,...proof[i],earliest:earliest[i],earlyPath:firstPaths[i],examples:examples[i]})).sort((a,b)=>b.current-a.current||a.name.localeCompare(b.name))};
+}
+// Conservative what-if: this driver repeats an exact position in every future
+// race up to each milestone. Rivals get their largest compatible race score.
+export function planTitlePositions(model,pilotIndex,{position=1,fastest=false}={}){
+ const {pilots,pending,points,bonus,extra,drops,maxFuture,completed}=model;
+ if(!Number.isInteger(pilotIndex)||pilotIndex<0||pilotIndex>=pilots.length)throw Error('Piloto inválido');
+ if(!Number.isInteger(position)||position<1||position>pilots.length)throw Error('Posição inválida');
+ const total=completed+pending.length;
+ const evaluate=(through,pos)=>{
+  const own=[...pilots[pilotIndex].history];
+  const opponents=pilots.map(p=>[...p.history]);
+  for(let stage=0;stage<=through;stage++){
+   const multiplier=pending[stage].dobrar_pontos?2:1;
+   own.push({points:(points[pos]||0)*multiplier+(fastest?bonus:0),penalty:false});
+   const rivalBase=Math.max(0,...Array.from({length:pilots.length},(_,i)=>i+1).filter(p=>p!==pos).map(p=>points[p]||0));
+   for(let i=0;i<pilots.length;i++)if(i!==pilotIndex)opponents[i].push({points:rivalBase*multiplier+(fastest?0:bonus)+extra,penalty:false});
+  }
+  const floor=bounds(own,total,maxFuture.slice(through+1),drops).lower;
+  const rivals=opponents.map((h,i)=>i===pilotIndex?-Infinity:bounds(h,total,maxFuture.slice(through+1),drops).upper);
+  const rivalCeiling=pilots.length===1?0:Math.max(...rivals);
+  return {floor,rivalCeiling,guaranteed:pilots.length===1||floor>rivalCeiling+1e-8};
+ };
+ return pending.map((stage,through)=>{
+  let sufficient=null;
+  for(let pos=pilots.length;pos>=1;pos--)if(evaluate(through,pos).guaranteed){sufficient=pos;break;}
+  return {id:stage.id,label:stage.label,through,position,...evaluate(through,position),sufficient};
+ });
 }

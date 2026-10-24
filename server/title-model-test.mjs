@@ -17,3 +17,11 @@ for(const first of [null,0,10])for(const second of [null,0,20]){const rows=[...h
 assert.equal(prepareTitleModel({...config,championship:{numero_etapas_planejadas:4}}).missing,2);
 assert.throws(()=>prepareTitleModel({...config,table:[]}));
 console.log('OK: scoring, penalties, absences, discards, double points, bonus, tie handling, deterministic percentages, exclusive race positions, valid scenario bounds and missing schedule.');
+const {planTitlePositions}=await import('../src/utils/titleModel.mjs');
+const guaranteedPlan=planTitlePositions(model,0,{position:2});assert.equal(guaranteedPlan.length,1);assert.equal(guaranteedPlan[0].guaranteed,true);assert.equal(guaranteedPlan[0].sufficient,2);
+const uncertain=planTitlePositions(competitive,0,{position:2});assert.equal(uncertain[0].guaranteed,false);
+const winning=planTitlePositions(competitive,0,{position:1,fastest:true});assert.equal(winning[0].guaranteed,true);assert.equal(winning[0].floor,31);
+assert.throws(()=>planTitlePositions(model,0,{position:0}));
+assert.deepEqual(planTitlePositions(tied,0),[]);
+assert.equal(a.pilots[0].bestObservedRank,1);assert(a.pilots[0].worstObservedRank<=2);
+console.log('OK: position planner, double points, best lap, strict tie exclusion, completed seasons and observed final positions.');
