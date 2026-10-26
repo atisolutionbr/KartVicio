@@ -86,6 +86,12 @@ export function usePdfExport() {
         background: #ffffff;
         overflow: visible;
       `;
+      // Expand annotated scroll areas so a projection PDF includes every driver.
+      clone.querySelectorAll('[data-pdf-expand]').forEach(node => {
+        node.style.maxHeight = 'none';
+        node.style.overflow = 'visible';
+        node.style.height = 'auto';
+      });
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
 
